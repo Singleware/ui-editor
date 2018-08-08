@@ -1,0 +1,49 @@
+{
+  "author": {
+    "name": "Silas B. Domingos",
+    "email": "hello@balmante.eti.br",
+    "url": "https://balmante.eti.br"
+  },
+  "name": "@singleware/ui-editor",
+  "description": "Singleware UI editor package.",
+  "license": "MIT",
+  "version": "1.0.3",
+  "main": "release/source/index.js",
+  "types": "release/types/index.d.ts",
+  "keywords": [
+    "editor",
+    "ui editor",
+    "user interface",
+    "shadow dom",
+    "browser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/singleware/ui-editor"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "@singleware/class": "^1.0.13",
+    "@singleware/jsx": "^1.0.9",
+    "@singleware/ui-control": "^1.0.10"
+  },
+  "devDependencies": {
+    "prettier": "^1.14.2",
+    "typescript": "^2.9.2"
+  },
+  "prettier": {
+    "printWidth": 140,
+    "tabWidth": 2,
+    "singleQuote": true,
+    "semi": true
+  },
+  "scripts": {
+    "build": "npm run make && npm run update",
+    "make": "tsc",
+    "update": "npm run update-actions",
+    "update-root": "cp -Rf ./source/*.d.ts ./release/types",
+    "update-actions": "cp -Rf ./source/actions/*.d.ts ./release/types/actions"
+  }
+}
