@@ -72,7 +72,7 @@ export class Template extends Control.Component<Properties> {
   @Class.Private()
   private bindProperties(): void {
     Object.defineProperties(this.skeleton, {
-      disabled: super.bindDescriptor(Template.prototype, 'disabled')
+      disabled: super.bindDescriptor(this, Template.prototype, 'disabled')
     });
   }
 

@@ -107,12 +107,12 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     bindProperties() {
         Object.defineProperties(this.skeleton, {
-            name: super.bindDescriptor(Template_1.prototype, 'name'),
-            value: super.bindDescriptor(Template_1.prototype, 'value'),
-            required: super.bindDescriptor(Template_1.prototype, 'required'),
-            readOnly: super.bindDescriptor(Template_1.prototype, 'readOnly'),
-            disabled: super.bindDescriptor(Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(Template_1.prototype, 'orientation')
+            name: super.bindDescriptor(this, Template_1.prototype, 'name'),
+            value: super.bindDescriptor(this, Template_1.prototype, 'value'),
+            required: super.bindDescriptor(this, Template_1.prototype, 'required'),
+            readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
+            disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
+            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation')
         });
     }
     /**

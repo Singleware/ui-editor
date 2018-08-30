@@ -84,8 +84,9 @@ export class Template extends Control.Component<Properties> {
   width: inherit;
   height: inherit;
 }
-:host > .wrapper > .content {
+:host > .wrapper > .content::slotted(*) {
   display: block;
+  position: relative;
   overflow: auto;
 }`}
     </style>
@@ -123,12 +124,12 @@ export class Template extends Control.Component<Properties> {
   @Class.Private()
   private bindProperties(): void {
     Object.defineProperties(this.skeleton, {
-      name: super.bindDescriptor(Template.prototype, 'name'),
-      value: super.bindDescriptor(Template.prototype, 'value'),
-      required: super.bindDescriptor(Template.prototype, 'required'),
-      readOnly: super.bindDescriptor(Template.prototype, 'readOnly'),
-      disabled: super.bindDescriptor(Template.prototype, 'disabled'),
-      orientation: super.bindDescriptor(Template.prototype, 'orientation')
+      name: super.bindDescriptor(this, Template.prototype, 'name'),
+      value: super.bindDescriptor(this, Template.prototype, 'value'),
+      required: super.bindDescriptor(this, Template.prototype, 'required'),
+      readOnly: super.bindDescriptor(this, Template.prototype, 'readOnly'),
+      disabled: super.bindDescriptor(this, Template.prototype, 'disabled'),
+      orientation: super.bindDescriptor(this, Template.prototype, 'orientation')
     });
   }
 

@@ -63,7 +63,7 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     bindProperties() {
         Object.defineProperties(this.skeleton, {
-            disabled: super.bindDescriptor(Template_1.prototype, 'disabled')
+            disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled')
         });
     }
     /**
