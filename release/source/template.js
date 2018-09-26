@@ -82,21 +82,35 @@ let Template = Template_1 = class Template extends Control.Component {
   width: inherit;
   height: inherit;
 }
-:host > .wrapper > .content {
+:host > .wrapper > .content::slotted(*) {
   display: block;
+  position: relative;
   overflow: auto;
 }`));
         /**
          * Editor skeleton.
          */
         this.skeleton = (DOM.create("div", { slot: this.properties.slot, class: this.properties.class }, this.children));
-        /**
-         * Editor elements.
-         */
-        this.elements = DOM.append(this.skeleton.attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
+        DOM.append(this.skeleton.attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
         this.bindHandlers();
         this.bindProperties();
         this.assignProperties();
+    }
+    /**
+     * Gets the content element.
+     */
+    get content() {
+        const content = Control.getChildByProperty(this.contentSlot, 'contentEditable');
+        if (!content) {
+            throw new Error(`There is no content element assigned.`);
+        }
+        return content;
+    }
+    /**
+     * Notify editor changes.
+     */
+    notifyChanges() {
+        this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
     }
     /**
      * Bind event handlers to update the custom element.
@@ -112,7 +126,25 @@ let Template = Template_1 = class Template extends Control.Component {
             required: super.bindDescriptor(this, Template_1.prototype, 'required'),
             readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
             disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation')
+            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation'),
+            formatAction: super.bindDescriptor(this, Template_1.prototype, 'formatAction'),
+            undoAction: super.bindDescriptor(this, Template_1.prototype, 'undoAction'),
+            redoAction: super.bindDescriptor(this, Template_1.prototype, 'redoAction'),
+            boldAction: super.bindDescriptor(this, Template_1.prototype, 'boldAction'),
+            italicAction: super.bindDescriptor(this, Template_1.prototype, 'italicAction'),
+            underlineAction: super.bindDescriptor(this, Template_1.prototype, 'underlineAction'),
+            strikeThroughAction: super.bindDescriptor(this, Template_1.prototype, 'strikeThroughAction'),
+            unorderedListAction: super.bindDescriptor(this, Template_1.prototype, 'unorderedListAction'),
+            orderedListAction: super.bindDescriptor(this, Template_1.prototype, 'orderedListAction'),
+            alignLeftAction: super.bindDescriptor(this, Template_1.prototype, 'alignLeftAction'),
+            alignCenterAction: super.bindDescriptor(this, Template_1.prototype, 'alignCenterAction'),
+            alignRightAction: super.bindDescriptor(this, Template_1.prototype, 'alignRightAction'),
+            alignJustifyAction: super.bindDescriptor(this, Template_1.prototype, 'alignJustifyAction'),
+            outdentAction: super.bindDescriptor(this, Template_1.prototype, 'outdentAction'),
+            indentAction: super.bindDescriptor(this, Template_1.prototype, 'indentAction'),
+            cutAction: super.bindDescriptor(this, Template_1.prototype, 'cutAction'),
+            copyAction: super.bindDescriptor(this, Template_1.prototype, 'copyAction'),
+            pasteAction: super.bindDescriptor(this, Template_1.prototype, 'pasteAction')
         });
     }
     /**
@@ -204,6 +236,150 @@ let Template = Template_1 = class Template extends Control.Component {
     get element() {
         return this.skeleton;
     }
+    /**
+     * Formats the specified tag from the selection or insertion point.
+     * @param tag HTML tag.
+     */
+    formatAction(tag) {
+        document.execCommand('formatAction', false, tag);
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Undoes the last executed command.
+     */
+    undoAction() {
+        document.execCommand('undo');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Redoes the previous undo command.
+     */
+    redoAction() {
+        document.execCommand('redo');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Toggles bold on/off for the selection or at the insertion point.
+     */
+    boldAction() {
+        document.execCommand('bold');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Toggles italics on/off for the selection or at the insertion point.
+     */
+    italicAction() {
+        document.execCommand('italic');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Toggles underline on/off for the selection or at the insertion point.
+     */
+    underlineAction() {
+        document.execCommand('underline');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Toggles strikeThrough on/off for the selection or at the insertion point.
+     */
+    strikeThroughAction() {
+        document.execCommand('strikeThrough');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Creates a bulleted unordered list for the selection or at the insertion point.
+     */
+    unorderedListAction() {
+        document.execCommand('insertUnorderedList');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Creates a numbered ordered list for the selection or at the insertion point.
+     */
+    orderedListAction() {
+        document.execCommand('insertOrderedList');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Justifies the selection or insertion point to the left.
+     */
+    alignLeftAction() {
+        document.execCommand('justifyLeft');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Justifies the selection or insertion point to the center.
+     */
+    alignCenterAction() {
+        document.execCommand('justifyCenter');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Justifies the selection or insertion point to the right.
+     */
+    alignRightAction() {
+        document.execCommand('justifyRight');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Justifies the selection or insertion point.
+     */
+    alignJustifyAction() {
+        document.execCommand('justifyFull');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Outdents the line containing the selection or insertion point.
+     */
+    outdentAction() {
+        document.execCommand('outdent');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Indents the line containing the selection or insertion point.
+     */
+    indentAction() {
+        document.execCommand('indent');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Removes the current selection and copies it to the clipboard.
+     */
+    cutAction() {
+        document.execCommand('cut');
+        this.content.focus();
+        this.notifyChanges();
+    }
+    /**
+     * Copies the current selection to the clipboard.
+     */
+    copyAction() {
+        document.execCommand('copy');
+        this.content.focus();
+    }
+    /**
+     * Pastes the clipboard contents at the insertion point.
+     */
+    pasteAction() {
+        document.execCommand('paste');
+        this.content.focus();
+        this.notifyChanges();
+    }
 };
 __decorate([
     Class.Private()
@@ -225,7 +401,10 @@ __decorate([
 ], Template.prototype, "skeleton", void 0);
 __decorate([
     Class.Private()
-], Template.prototype, "elements", void 0);
+], Template.prototype, "content", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "notifyChanges", null);
 __decorate([
     Class.Private()
 ], Template.prototype, "bindHandlers", null);
@@ -256,6 +435,60 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "element", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "formatAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "undoAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "redoAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "boldAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "italicAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "underlineAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "strikeThroughAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "unorderedListAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "orderedListAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "alignLeftAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "alignCenterAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "alignRightAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "alignJustifyAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "outdentAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "indentAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "cutAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "copyAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "pasteAction", null);
 Template = Template_1 = __decorate([
     Class.Describe()
 ], Template);

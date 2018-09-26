@@ -5,6 +5,3 @@
 export { Template } from './template';
 export { Properties } from './properties';
 export { Element } from './element';
-
-import * as ActionsModule from './actions';
-export const Actions = ActionsModule;

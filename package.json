@@ -7,7 +7,7 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
@@ -25,12 +25,12 @@
     "node": ">=8"
   },
   "dependencies": {
-    "@singleware/class": "^1.1.9",
-    "@singleware/jsx": "^1.0.11",
-    "@singleware/ui-control": "^1.0.11"
+    "@singleware/class": "^1.1.11",
+    "@singleware/jsx": "^1.0.12",
+    "@singleware/ui-control": "^1.0.13"
   },
   "devDependencies": {
-    "prettier": "^1.14.2",
+    "prettier": "^1.14.3",
     "typescript": "^2.9.2"
   },
   "prettier": {
@@ -42,8 +42,6 @@
   "scripts": {
     "build": "npm run make && npm run update",
     "make": "tsc",
-    "update": "npm run update-actions",
-    "update-root": "cp -Rf ./source/*.d.ts ./release/types",
-    "update-actions": "cp -Rf ./source/actions/*.d.ts ./release/types/actions"
+    "update": "cp -Rf ./source/*.d.ts ./release/types"
   }
 }

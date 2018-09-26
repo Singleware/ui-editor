@@ -8,6 +8,7 @@ import * as Control from '@singleware/ui-control';
 
 import { Properties } from './properties';
 import { Element } from './element';
+import { States } from './states';
 
 /**
  * Editor template class.
@@ -23,25 +24,25 @@ export class Template extends Control.Component<Properties> {
     required: false,
     readOnly: false,
     disabled: false
-  };
+  } as States;
 
   /**
    * Toolbar element.
    */
   @Class.Private()
-  private toolbarSlot: HTMLSlotElement = <slot name="toolbar" class="toolbar" /> as HTMLSlotElement;
+  private toolbarSlot = <slot name="toolbar" class="toolbar" /> as HTMLSlotElement;
 
   /**
    * Content element.
    */
   @Class.Private()
-  private contentSlot: HTMLSlotElement = <slot name="content" class="content" /> as HTMLSlotElement;
+  private contentSlot = <slot name="content" class="content" /> as HTMLSlotElement;
 
   /**
    * Wrapper element.
    */
   @Class.Private()
-  private wrapper: HTMLElement = (
+  private wrapper = (
     <div class="wrapper">
       {this.toolbarSlot}
       {this.contentSlot}
@@ -52,7 +53,7 @@ export class Template extends Control.Component<Properties> {
    * Editor styles.
    */
   @Class.Private()
-  private styles: HTMLStyleElement = (
+  private styles = (
     <style>
       {`:host > .wrapper {
   display: flex;
@@ -96,21 +97,31 @@ export class Template extends Control.Component<Properties> {
    * Editor skeleton.
    */
   @Class.Private()
-  private skeleton: Element = (
+  private skeleton = (
     <div slot={this.properties.slot} class={this.properties.class}>
       {this.children}
     </div>
   ) as Element;
 
   /**
-   * Editor elements.
+   * Gets the content element.
    */
   @Class.Private()
-  private elements: ShadowRoot = DOM.append(
-    (this.skeleton as HTMLDivElement).attachShadow({ mode: 'closed' }),
-    this.styles,
-    this.wrapper
-  ) as ShadowRoot;
+  private get content(): HTMLElement {
+    const content = Control.getChildByProperty(this.contentSlot, 'contentEditable');
+    if (!content) {
+      throw new Error(`There is no content element assigned.`);
+    }
+    return content;
+  }
+
+  /**
+   * Notify editor changes.
+   */
+  @Class.Private()
+  private notifyChanges(): void {
+    this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
+  }
 
   /**
    * Bind event handlers to update the custom element.
@@ -129,7 +140,25 @@ export class Template extends Control.Component<Properties> {
       required: super.bindDescriptor(this, Template.prototype, 'required'),
       readOnly: super.bindDescriptor(this, Template.prototype, 'readOnly'),
       disabled: super.bindDescriptor(this, Template.prototype, 'disabled'),
-      orientation: super.bindDescriptor(this, Template.prototype, 'orientation')
+      orientation: super.bindDescriptor(this, Template.prototype, 'orientation'),
+      formatAction: super.bindDescriptor(this, Template.prototype, 'formatAction'),
+      undoAction: super.bindDescriptor(this, Template.prototype, 'undoAction'),
+      redoAction: super.bindDescriptor(this, Template.prototype, 'redoAction'),
+      boldAction: super.bindDescriptor(this, Template.prototype, 'boldAction'),
+      italicAction: super.bindDescriptor(this, Template.prototype, 'italicAction'),
+      underlineAction: super.bindDescriptor(this, Template.prototype, 'underlineAction'),
+      strikeThroughAction: super.bindDescriptor(this, Template.prototype, 'strikeThroughAction'),
+      unorderedListAction: super.bindDescriptor(this, Template.prototype, 'unorderedListAction'),
+      orderedListAction: super.bindDescriptor(this, Template.prototype, 'orderedListAction'),
+      alignLeftAction: super.bindDescriptor(this, Template.prototype, 'alignLeftAction'),
+      alignCenterAction: super.bindDescriptor(this, Template.prototype, 'alignCenterAction'),
+      alignRightAction: super.bindDescriptor(this, Template.prototype, 'alignRightAction'),
+      alignJustifyAction: super.bindDescriptor(this, Template.prototype, 'alignJustifyAction'),
+      outdentAction: super.bindDescriptor(this, Template.prototype, 'outdentAction'),
+      indentAction: super.bindDescriptor(this, Template.prototype, 'indentAction'),
+      cutAction: super.bindDescriptor(this, Template.prototype, 'cutAction'),
+      copyAction: super.bindDescriptor(this, Template.prototype, 'copyAction'),
+      pasteAction: super.bindDescriptor(this, Template.prototype, 'pasteAction')
     });
   }
 
@@ -150,6 +179,7 @@ export class Template extends Control.Component<Properties> {
    */
   constructor(properties?: Properties, children?: any[]) {
     super(properties, children);
+    DOM.append((this.skeleton as HTMLDivElement).attachShadow({ mode: 'closed' }), this.styles, this.wrapper);
     this.bindHandlers();
     this.bindProperties();
     this.assignProperties();
@@ -254,5 +284,185 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public get element(): Element {
     return this.skeleton;
+  }
+
+  /**
+   * Formats the specified tag from the selection or insertion point.
+   * @param tag HTML tag.
+   */
+  @Class.Public()
+  public formatAction(tag: string): void {
+    document.execCommand('formatAction', false, tag);
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Undoes the last executed command.
+   */
+  @Class.Public()
+  public undoAction(): void {
+    document.execCommand('undo');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Redoes the previous undo command.
+   */
+  @Class.Public()
+  public redoAction(): void {
+    document.execCommand('redo');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Toggles bold on/off for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public boldAction(): void {
+    document.execCommand('bold');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Toggles italics on/off for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public italicAction(): void {
+    document.execCommand('italic');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Toggles underline on/off for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public underlineAction(): void {
+    document.execCommand('underline');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Toggles strikeThrough on/off for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public strikeThroughAction(): void {
+    document.execCommand('strikeThrough');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Creates a bulleted unordered list for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public unorderedListAction(): void {
+    document.execCommand('insertUnorderedList');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Creates a numbered ordered list for the selection or at the insertion point.
+   */
+  @Class.Public()
+  public orderedListAction(): void {
+    document.execCommand('insertOrderedList');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Justifies the selection or insertion point to the left.
+   */
+  @Class.Public()
+  public alignLeftAction(): void {
+    document.execCommand('justifyLeft');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Justifies the selection or insertion point to the center.
+   */
+  @Class.Public()
+  public alignCenterAction(): void {
+    document.execCommand('justifyCenter');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Justifies the selection or insertion point to the right.
+   */
+  @Class.Public()
+  public alignRightAction(): void {
+    document.execCommand('justifyRight');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Justifies the selection or insertion point.
+   */
+  @Class.Public()
+  public alignJustifyAction(): void {
+    document.execCommand('justifyFull');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Outdents the line containing the selection or insertion point.
+   */
+  @Class.Public()
+  public outdentAction(): void {
+    document.execCommand('outdent');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Indents the line containing the selection or insertion point.
+   */
+  @Class.Public()
+  public indentAction(): void {
+    document.execCommand('indent');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Removes the current selection and copies it to the clipboard.
+   */
+  @Class.Public()
+  public cutAction(): void {
+    document.execCommand('cut');
+    this.content.focus();
+    this.notifyChanges();
+  }
+
+  /**
+   * Copies the current selection to the clipboard.
+   */
+  @Class.Public()
+  public copyAction(): void {
+    document.execCommand('copy');
+    this.content.focus();
+  }
+
+  /**
+   * Pastes the clipboard contents at the insertion point.
+   */
+  @Class.Public()
+  public pasteAction(): void {
+    document.execCommand('paste');
+    this.content.focus();
+    this.notifyChanges();
   }
 }

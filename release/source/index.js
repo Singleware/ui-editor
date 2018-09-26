@@ -6,5 +6,3 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var template_1 = require("./template");
 exports.Template = template_1.Template;
-const ActionsModule = require("./actions");
-exports.Actions = ActionsModule;

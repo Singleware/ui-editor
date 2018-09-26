@@ -5,5 +5,3 @@
 export { Template } from './template';
 export { Properties } from './properties';
 export { Element } from './element';
-import * as ActionsModule from './actions';
-export declare const Actions: typeof ActionsModule;
