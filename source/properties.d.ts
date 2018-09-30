@@ -36,6 +36,14 @@ export interface Properties {
    */
   disabled?: boolean;
   /**
+   * HTML paragraph tag.
+   */
+  paragraphTag?: string;
+  /**
+   * HTML denied tags.
+   */
+  deniedTags?: string[];
+  /**
    * Editor orientation.
    */
   orientation?: string;

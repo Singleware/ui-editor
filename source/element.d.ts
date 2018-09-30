@@ -2,6 +2,7 @@
  * Copyright (C) 2018 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
+import { Styles } from './styles';
 
 /**
  * Editor element interface.
@@ -23,6 +24,14 @@ export interface Element extends HTMLDivElement {
    * Disabled state.
    */
   disabled: boolean;
+  /**
+   * HTML paragraph tag.
+   */
+  paragraphTag: string;
+  /**
+   * HTML denied tags.
+   */
+  deniedTags?: string[];
   /**
    * Orientation mode.
    */
@@ -100,4 +109,16 @@ export interface Element extends HTMLDivElement {
    * Pastes the clipboard contents at the insertion point.
    */
   pasteAction: () => void;
+  /**
+   * Gets the active styles map from the specified node.
+   * @param node Child node.
+   * @param map Current styles map.
+   * @returns Returns the active styles map.
+   */
+  getStyles: (node: Node, map?: Styles) => Styles;
+  /**
+   * Gets the active styles map from the focused node.
+   * @returns Returns the active styles map.
+   */
+  getCurrentStyles: () => Styles;
 }

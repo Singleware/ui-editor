@@ -12,6 +12,10 @@ export interface States {
    */
   name: string;
   /**
+   * Editor value.
+   */
+  value: string;
+  /**
    * Determines whether the editor is required or not.
    */
   required: boolean;
@@ -23,4 +27,12 @@ export interface States {
    * Determines whether the editor is disabled or not.
    */
   disabled: boolean;
+  /**
+   * HTML paragraph tag.
+   */
+  paragraphTag: string;
+  /**
+   * HTML denied tags.
+   */
+  deniedTags: string[];
 }

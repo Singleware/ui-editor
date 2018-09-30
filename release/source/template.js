@@ -21,8 +21,8 @@ const Control = require("@singleware/ui-control");
 let Template = Template_1 = class Template extends Control.Component {
     /**
      * Default constructor.
-     * @param properties Form properties.
-     * @param children Form children.
+     * @param properties Editor properties.
+     * @param children Editor children.
      */
     constructor(properties, children) {
         super(properties, children);
@@ -31,10 +31,45 @@ let Template = Template_1 = class Template extends Control.Component {
          */
         this.states = {
             name: '',
+            value: '',
             required: false,
-            readOnly: false,
-            disabled: false
+            disabled: false,
+            deniedTags: [
+                'html',
+                'head',
+                'meta',
+                'base',
+                'basefont',
+                'title',
+                'body',
+                'frame',
+                'frameset',
+                'noframes',
+                'iframe',
+                'script',
+                'noscript',
+                'applet',
+                'embed',
+                'object',
+                'param',
+                'form',
+                'fieldset',
+                'legend',
+                'label',
+                'select',
+                'optgroup',
+                'option',
+                'textarea',
+                'input',
+                'output',
+                'button',
+                'datalist'
+            ]
         };
+        /**
+         * Mutation observer.
+         */
+        this.elementObserver = new MutationObserver(this.mutationHandler.bind(this));
         /**
          * Toolbar element.
          */
@@ -57,11 +92,11 @@ let Template = Template_1 = class Template extends Control.Component {
   width: inherit;
   height: inherit;
 }
-:host > .wrapper[data-orientation='row'] {
+:host([data-orientation='row']) > .wrapper {
   flex-direction: row;
 }
 :host > .wrapper,
-:host > .wrapper[data-orientation='column'] {
+:host([data-orientation='column']) > .wrapper {
   flex-direction: column;
 }
 :host > .wrapper > .toolbar {
@@ -70,11 +105,11 @@ let Template = Template_1 = class Template extends Control.Component {
   flex-shrink: 0;
   width: inherit;
 }
-:host > .wrapper[data-orientation='row'] > .toolbar {
+:host([data-orientation='row']) > .wrapper > .toolbar {
   flex-direction: row;
 }
 :host > .wrapper > .toolbar
-:host > .wrapper[data-orientation='column'] > .toolbar {
+:host([data-orientation='column']) > .wrapper > .toolbar {
   flex-direction: column;
 }
 :host > .wrapper > .content,
@@ -99,7 +134,7 @@ let Template = Template_1 = class Template extends Control.Component {
     /**
      * Gets the content element.
      */
-    get content() {
+    getContent() {
         const content = Control.getChildByProperty(this.contentSlot, 'contentEditable');
         if (!content) {
             throw new Error(`There is no content element assigned.`);
@@ -107,65 +142,104 @@ let Template = Template_1 = class Template extends Control.Component {
         return content;
     }
     /**
-     * Notify editor changes.
+     * Filters the specified node list to remove any denied node.
+     * @param nodes Node list.
      */
-    notifyChanges() {
-        this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
+    removeDeniedNodes(nodes) {
+        for (const node of nodes) {
+            if (node instanceof HTMLElement && this.deniedTags.includes(node.tagName)) {
+                node.remove();
+            }
+        }
+    }
+    /**
+     * Mutation handler.
+     * @param records Mutation record list.
+     */
+    mutationHandler(records) {
+        const content = this.getContent();
+        for (const record of records) {
+            if (record.target === content || (record.target instanceof HTMLElement && Template_1.isChildOf(record.target, content))) {
+                this.removeDeniedNodes(record.addedNodes);
+            }
+        }
+    }
+    /**
+     * Content focus handler.
+     */
+    focusHandler() {
+        const content = this.getContent();
+        if (content.childNodes.length === 0 && this.paragraphTag !== 'br') {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            DOM.append(content, DOM.create(this.paragraphTag, {}, DOM.create('br', {})));
+            range.setStart(content.firstChild, 0);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+    /**
+     * Content change handler.
+     */
+    changeHandler() {
+        const content = this.getContent();
+        if (this.states.value !== content.innerHTML) {
+            this.states.value = content.innerHTML;
+            this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
+        }
     }
     /**
      * Bind event handlers to update the custom element.
      */
-    bindHandlers() { }
+    bindHandlers() {
+        this.elementObserver.observe(this.skeleton, { childList: true, subtree: true });
+        this.skeleton.addEventListener('focus', this.focusHandler.bind(this), true);
+        this.skeleton.addEventListener('keyup', this.changeHandler.bind(this), true);
+    }
     /**
      * Bind exposed properties to the custom element.
      */
     bindProperties() {
-        Object.defineProperties(this.skeleton, {
-            name: super.bindDescriptor(this, Template_1.prototype, 'name'),
-            value: super.bindDescriptor(this, Template_1.prototype, 'value'),
-            required: super.bindDescriptor(this, Template_1.prototype, 'required'),
-            readOnly: super.bindDescriptor(this, Template_1.prototype, 'readOnly'),
-            disabled: super.bindDescriptor(this, Template_1.prototype, 'disabled'),
-            orientation: super.bindDescriptor(this, Template_1.prototype, 'orientation'),
-            formatAction: super.bindDescriptor(this, Template_1.prototype, 'formatAction'),
-            undoAction: super.bindDescriptor(this, Template_1.prototype, 'undoAction'),
-            redoAction: super.bindDescriptor(this, Template_1.prototype, 'redoAction'),
-            boldAction: super.bindDescriptor(this, Template_1.prototype, 'boldAction'),
-            italicAction: super.bindDescriptor(this, Template_1.prototype, 'italicAction'),
-            underlineAction: super.bindDescriptor(this, Template_1.prototype, 'underlineAction'),
-            strikeThroughAction: super.bindDescriptor(this, Template_1.prototype, 'strikeThroughAction'),
-            unorderedListAction: super.bindDescriptor(this, Template_1.prototype, 'unorderedListAction'),
-            orderedListAction: super.bindDescriptor(this, Template_1.prototype, 'orderedListAction'),
-            alignLeftAction: super.bindDescriptor(this, Template_1.prototype, 'alignLeftAction'),
-            alignCenterAction: super.bindDescriptor(this, Template_1.prototype, 'alignCenterAction'),
-            alignRightAction: super.bindDescriptor(this, Template_1.prototype, 'alignRightAction'),
-            alignJustifyAction: super.bindDescriptor(this, Template_1.prototype, 'alignJustifyAction'),
-            outdentAction: super.bindDescriptor(this, Template_1.prototype, 'outdentAction'),
-            indentAction: super.bindDescriptor(this, Template_1.prototype, 'indentAction'),
-            cutAction: super.bindDescriptor(this, Template_1.prototype, 'cutAction'),
-            copyAction: super.bindDescriptor(this, Template_1.prototype, 'copyAction'),
-            pasteAction: super.bindDescriptor(this, Template_1.prototype, 'pasteAction')
-        });
+        this.bindComponentProperties(this.skeleton, [
+            'name',
+            'value',
+            'required',
+            'readOnly',
+            'disabled',
+            'paragraphTag',
+            'deniedTags',
+            'orientation',
+            'formatAction',
+            'undoAction',
+            'redoAction',
+            'boldAction',
+            'italicAction',
+            'underlineAction',
+            'strikeThroughAction',
+            'unorderedListAction',
+            'orderedListAction',
+            'alignLeftAction',
+            'alignCenterAction',
+            'alignRightAction',
+            'alignJustifyAction',
+            'outdentAction',
+            'indentAction',
+            'cutAction',
+            'copyAction',
+            'pasteAction',
+            'getStyles',
+            'getCurrentStyles'
+        ]);
     }
     /**
      * Assign all elements properties.
      */
     assignProperties() {
-        Control.assignProperties(this, this.properties, ['name', 'value', 'required', 'disabled']);
-        this.orientation = this.properties.orientation || 'column';
+        this.assignComponentProperties(this.properties, ['name', 'value', 'required', 'disabled', 'deniedTag']);
         this.readOnly = this.properties.readOnly || false;
-    }
-    /**
-     * Get HTML value.
-     */
-    get value() {
-        return this.contentSlot.innerHTML;
-    }
-    /**
-     * Set HTML value.
-     */
-    set value(value) {
-        this.contentSlot.innerHTML = value;
+        this.paragraphTag = this.properties.paragraphTag || 'p';
+        this.orientation = this.properties.orientation || 'column';
     }
     /**
      * Get editor name.
@@ -178,6 +252,20 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set name(name) {
         this.states.name = name;
+    }
+    /**
+     * Get editor value.
+     */
+    get value() {
+        return this.states.value;
+    }
+    /**
+     * Set editor value.
+     */
+    set value(value) {
+        const content = this.getContent();
+        content.innerHTML = value;
+        this.states.value = content.innerHTML;
     }
     /**
      * Get required state.
@@ -202,7 +290,7 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set readOnly(state) {
         this.states.readOnly = state;
-        Control.setChildrenProperty(this.contentSlot, 'contentEditable', !(state || this.disabled));
+        this.getContent().contentEditable = (!(state || this.disabled)).toString();
     }
     /**
      * Get disabled state.
@@ -215,20 +303,44 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set disabled(state) {
         this.states.disabled = state;
-        Control.setChildrenProperty(this.contentSlot, 'contentEditable', !(state || this.readOnly));
+        this.getContent().contentEditable = (!(state || this.readOnly)).toString();
         Control.setChildrenProperty(this.toolbarSlot, 'disabled', state);
+    }
+    /**
+     * Get HTML paragraph tag.
+     */
+    get paragraphTag() {
+        return this.states.paragraphTag;
+    }
+    /**
+     * Set HTML paragraph tag.
+     */
+    set paragraphTag(type) {
+        document.execCommand('defaultParagraphSeparator', false, (this.states.paragraphTag = type.toLowerCase()));
+    }
+    /**
+     * Get HTML denied tag.
+     */
+    get deniedTags() {
+        return this.states.deniedTags;
+    }
+    /**
+     * Set HTML denied tags.
+     */
+    set deniedTags(tags) {
+        this.deniedTags = tags.map((tag) => tag.toLowerCase());
     }
     /**
      * Get orientation mode.
      */
     get orientation() {
-        return this.wrapper.dataset.orientation || 'row';
+        return this.skeleton.dataset.orientation || 'row';
     }
     /**
      * Set orientation mode.
      */
     set orientation(mode) {
-        this.wrapper.dataset.orientation = mode;
+        this.skeleton.dataset.orientation = mode;
     }
     /**
      * Editor element.
@@ -241,149 +353,258 @@ let Template = Template_1 = class Template extends Control.Component {
      * @param tag HTML tag.
      */
     formatAction(tag) {
-        document.execCommand('formatAction', false, tag);
-        this.content.focus();
-        this.notifyChanges();
+        this.getContent().focus();
+        document.execCommand('formatBlock', false, tag);
     }
     /**
      * Undoes the last executed command.
      */
     undoAction() {
+        this.getContent().focus();
         document.execCommand('undo');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Redoes the previous undo command.
      */
     redoAction() {
+        this.getContent().focus();
         document.execCommand('redo');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Toggles bold on/off for the selection or at the insertion point.
      */
     boldAction() {
+        this.getContent().focus();
         document.execCommand('bold');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Toggles italics on/off for the selection or at the insertion point.
      */
     italicAction() {
+        this.getContent().focus();
         document.execCommand('italic');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Toggles underline on/off for the selection or at the insertion point.
      */
     underlineAction() {
         document.execCommand('underline');
-        this.content.focus();
-        this.notifyChanges();
+        this.getContent().focus();
     }
     /**
      * Toggles strikeThrough on/off for the selection or at the insertion point.
      */
     strikeThroughAction() {
+        this.getContent().focus();
         document.execCommand('strikeThrough');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Creates a bulleted unordered list for the selection or at the insertion point.
      */
     unorderedListAction() {
         document.execCommand('insertUnorderedList');
-        this.content.focus();
-        this.notifyChanges();
+        this.getContent().focus();
     }
     /**
      * Creates a numbered ordered list for the selection or at the insertion point.
      */
     orderedListAction() {
+        this.getContent().focus();
         document.execCommand('insertOrderedList');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Justifies the selection or insertion point to the left.
      */
     alignLeftAction() {
+        this.getContent().focus();
         document.execCommand('justifyLeft');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Justifies the selection or insertion point to the center.
      */
     alignCenterAction() {
+        this.getContent().focus();
         document.execCommand('justifyCenter');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Justifies the selection or insertion point to the right.
      */
     alignRightAction() {
+        this.getContent().focus();
         document.execCommand('justifyRight');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Justifies the selection or insertion point.
      */
     alignJustifyAction() {
+        this.getContent().focus();
         document.execCommand('justifyFull');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Outdents the line containing the selection or insertion point.
      */
     outdentAction() {
+        this.getContent().focus();
         document.execCommand('outdent');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Indents the line containing the selection or insertion point.
      */
     indentAction() {
+        this.getContent().focus();
         document.execCommand('indent');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Removes the current selection and copies it to the clipboard.
      */
     cutAction() {
+        this.getContent().focus();
         document.execCommand('cut');
-        this.content.focus();
-        this.notifyChanges();
     }
     /**
      * Copies the current selection to the clipboard.
      */
     copyAction() {
+        this.getContent().focus();
         document.execCommand('copy');
-        this.content.focus();
     }
     /**
      * Pastes the clipboard contents at the insertion point.
      */
     pasteAction() {
+        this.getContent().focus();
         document.execCommand('paste');
-        this.content.focus();
-        this.notifyChanges();
+    }
+    /**
+     * Gets the active styles map from the specified node.
+     * @param node Child node.
+     * @param map Current styles map.
+     * @returns Returns the active styles map.
+     */
+    getStyles(node, map) {
+        const content = this.getContent();
+        const styles = map || { ...Template_1.defaultStyles };
+        while (node && node !== content) {
+            if (node instanceof HTMLElement) {
+                Template_1.collectStylesByElement(styles, node);
+                Template_1.collectStylesByCSS(styles, node.style);
+            }
+            node = node.parentElement;
+        }
+        return styles;
+    }
+    /**
+     * Gets the active styles map from the focused node.
+     * @returns Returns the active styles map.
+     */
+    getCurrentStyles() {
+        const selection = window.getSelection();
+        const styles = { ...Template_1.defaultStyles };
+        if (selection.rangeCount) {
+            this.getStyles(selection.focusNode, styles);
+        }
+        return styles;
+    }
+    /**
+     * Determines whether the specified element is child of the specified parent element.
+     * @param element Child element.
+     * @param parent Parent element.
+     * @returns Returns true when the specified element is child of the specified parent element, false otherwise.
+     */
+    static isChildOf(child, parent) {
+        while (child.parentElement) {
+            if (child.parentElement === parent) {
+                return true;
+            }
+            child = child.parentElement;
+        }
+        return false;
+    }
+    /**
+     * Collect all styles by its respective CSS declaration.
+     * @param styles Styles map.
+     * @param css CSS declarations.
+     */
+    static collectStylesByCSS(styles, css) {
+        for (const declaration in this.stylesByCSS) {
+            const property = this.stylesByCSS[declaration][css[declaration]];
+            if (property in styles) {
+                styles[property] = true;
+            }
+        }
+    }
+    /**
+     * Collect all styles by its respective element names.
+     * @param styles Styles map.
+     * @param element HTML element.
+     */
+    static collectStylesByElement(styles, element) {
+        const property = this.stylesByTag[element.tagName.toLowerCase()];
+        if (property in styles) {
+            styles[property] = true;
+        }
+    }
+};
+/**
+ * Default styles.
+ */
+Template.defaultStyles = {
+    bold: false,
+    italic: false,
+    underline: false,
+    strikeThrough: false,
+    unorderedList: false,
+    orderedList: false,
+    paragraph: false,
+    heading1: false,
+    heading2: false,
+    heading3: false,
+    heading4: false,
+    heading5: false,
+    heading6: false,
+    alignLeft: false,
+    alignCenter: false,
+    alignRight: false,
+    alignJustify: false
+};
+/**
+ * Map of styles by tag.
+ */
+Template.stylesByTag = {
+    b: 'bold',
+    strong: 'bold',
+    i: 'italic',
+    em: 'italic',
+    u: 'underline',
+    s: 'strikeThrough',
+    strike: 'strikeThrough',
+    ul: 'unorderedList',
+    ol: 'orderedList',
+    p: 'paragraph',
+    h1: 'heading1',
+    h2: 'heading2',
+    h3: 'heading3',
+    h4: 'heading4',
+    h5: 'heading5',
+    h6: 'heading6'
+};
+/**
+ * Map of styles by CSS.
+ */
+Template.stylesByCSS = {
+    textAlign: {
+        left: 'alignLeft',
+        center: 'alignCenter',
+        right: 'alignRight',
+        justify: 'alignJustify'
     }
 };
 __decorate([
     Class.Private()
 ], Template.prototype, "states", void 0);
+__decorate([
+    Class.Private()
+], Template.prototype, "elementObserver", void 0);
 __decorate([
     Class.Private()
 ], Template.prototype, "toolbarSlot", void 0);
@@ -401,10 +622,19 @@ __decorate([
 ], Template.prototype, "skeleton", void 0);
 __decorate([
     Class.Private()
-], Template.prototype, "content", null);
+], Template.prototype, "getContent", null);
 __decorate([
     Class.Private()
-], Template.prototype, "notifyChanges", null);
+], Template.prototype, "removeDeniedNodes", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "mutationHandler", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "focusHandler", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "changeHandler", null);
 __decorate([
     Class.Private()
 ], Template.prototype, "bindHandlers", null);
@@ -416,10 +646,10 @@ __decorate([
 ], Template.prototype, "assignProperties", null);
 __decorate([
     Class.Public()
-], Template.prototype, "value", null);
+], Template.prototype, "name", null);
 __decorate([
     Class.Public()
-], Template.prototype, "name", null);
+], Template.prototype, "value", null);
 __decorate([
     Class.Public()
 ], Template.prototype, "required", null);
@@ -429,6 +659,12 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "disabled", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "paragraphTag", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "deniedTags", null);
 __decorate([
     Class.Public()
 ], Template.prototype, "orientation", null);
@@ -489,6 +725,30 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "pasteAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "getStyles", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "getCurrentStyles", null);
+__decorate([
+    Class.Private()
+], Template, "defaultStyles", void 0);
+__decorate([
+    Class.Private()
+], Template, "stylesByTag", void 0);
+__decorate([
+    Class.Private()
+], Template, "stylesByCSS", void 0);
+__decorate([
+    Class.Private()
+], Template, "isChildOf", null);
+__decorate([
+    Class.Private()
+], Template, "collectStylesByCSS", null);
+__decorate([
+    Class.Private()
+], Template, "collectStylesByElement", null);
 Template = Template_1 = __decorate([
     Class.Describe()
 ], Template);
