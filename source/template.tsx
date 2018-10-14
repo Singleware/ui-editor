@@ -145,7 +145,7 @@ export class Template extends Control.Component<Properties> {
    * Gets the content element.
    */
   @Class.Private()
-  private getContent(): HTMLElement {
+  private getContentElement(): HTMLElement {
     const content = Control.getChildByProperty(this.contentSlot, 'contentEditable');
     if (!content) {
       throw new Error(`There is no content element assigned.`);
@@ -172,7 +172,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private mutationHandler(records: MutationRecord[]): void {
-    const content = this.getContent();
+    const content = this.getContentElement();
     for (const record of records) {
       if (record.target === content || (record.target instanceof HTMLElement && Template.isChildOf(record.target, content))) {
         this.removeDeniedNodes(record.addedNodes);
@@ -185,7 +185,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private focusHandler(): void {
-    const content = this.getContent();
+    const content = this.getContentElement();
     if (content.childNodes.length === 0 && this.paragraphTag !== 'br') {
       const range = document.createRange();
       const selection = window.getSelection();
@@ -202,7 +202,8 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Private()
   private changeHandler(): void {
-    const content = this.getContent();
+    const content = this.getContentElement();
+    content.normalize();
     if (this.states.value !== content.innerHTML) {
       this.states.value = content.innerHTML;
       this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
@@ -307,7 +308,7 @@ export class Template extends Control.Component<Properties> {
    * Set editor value.
    */
   public set value(value: string) {
-    const content = this.getContent();
+    const content = this.getContentElement();
     content.innerHTML = value;
     this.states.value = content.innerHTML;
   }
@@ -340,7 +341,7 @@ export class Template extends Control.Component<Properties> {
    */
   public set readOnly(state: boolean) {
     this.states.readOnly = state;
-    this.getContent().contentEditable = (!(state || this.disabled)).toString();
+    this.getContentElement().contentEditable = (!(state || this.disabled)).toString();
   }
 
   /**
@@ -356,7 +357,7 @@ export class Template extends Control.Component<Properties> {
    */
   public set disabled(state: boolean) {
     this.states.disabled = state;
-    this.getContent().contentEditable = (!(state || this.readOnly)).toString();
+    this.getContentElement().contentEditable = (!(state || this.readOnly)).toString();
     Control.setChildrenProperty(this.toolbarSlot, 'disabled', state);
   }
 
@@ -419,7 +420,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public formatAction(tag: string): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('formatBlock', false, tag);
   }
 
@@ -428,7 +429,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public undoAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('undo');
   }
 
@@ -437,7 +438,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public redoAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('redo');
   }
 
@@ -446,7 +447,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public boldAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('bold');
   }
 
@@ -455,7 +456,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public italicAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('italic');
   }
 
@@ -465,7 +466,7 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public underlineAction(): void {
     document.execCommand('underline');
-    this.getContent().focus();
+    this.getContentElement().focus();
   }
 
   /**
@@ -473,7 +474,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public strikeThroughAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('strikeThrough');
   }
 
@@ -483,7 +484,7 @@ export class Template extends Control.Component<Properties> {
   @Class.Public()
   public unorderedListAction(): void {
     document.execCommand('insertUnorderedList');
-    this.getContent().focus();
+    this.getContentElement().focus();
   }
 
   /**
@@ -491,7 +492,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public orderedListAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('insertOrderedList');
   }
 
@@ -500,7 +501,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignLeftAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('justifyLeft');
   }
 
@@ -509,7 +510,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignCenterAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('justifyCenter');
   }
 
@@ -518,7 +519,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignRightAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('justifyRight');
   }
 
@@ -527,7 +528,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignJustifyAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('justifyFull');
   }
 
@@ -536,7 +537,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public outdentAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('outdent');
   }
 
@@ -545,7 +546,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public indentAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('indent');
   }
 
@@ -554,7 +555,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public cutAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('cut');
   }
 
@@ -563,7 +564,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public copyAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('copy');
   }
 
@@ -572,7 +573,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public pasteAction(): void {
-    this.getContent().focus();
+    this.getContentElement().focus();
     document.execCommand('paste');
   }
 
@@ -584,7 +585,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public getStyles(node: Node, map?: Styles): Styles {
-    const content = this.getContent();
+    const content = this.getContentElement();
     const styles = map || ({ ...Template.defaultStyles } as Styles);
     while (node && node !== content) {
       if (node instanceof HTMLElement) {
@@ -644,8 +645,10 @@ export class Template extends Control.Component<Properties> {
     i: 'italic',
     em: 'italic',
     u: 'underline',
+    ins: 'underline',
     s: 'strikeThrough',
     strike: 'strikeThrough',
+    del: 'strikeThrough',
     ul: 'unorderedList',
     ol: 'orderedList',
     p: 'paragraph',

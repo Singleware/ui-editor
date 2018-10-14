@@ -37,7 +37,7 @@ export declare class Template extends Control.Component<Properties> {
     /**
      * Gets the content element.
      */
-    private getContent;
+    private getContentElement;
     /**
      * Filters the specified node list to remove any denied node.
      * @param nodes Node list.

@@ -134,7 +134,7 @@ let Template = Template_1 = class Template extends Control.Component {
     /**
      * Gets the content element.
      */
-    getContent() {
+    getContentElement() {
         const content = Control.getChildByProperty(this.contentSlot, 'contentEditable');
         if (!content) {
             throw new Error(`There is no content element assigned.`);
@@ -157,7 +157,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * @param records Mutation record list.
      */
     mutationHandler(records) {
-        const content = this.getContent();
+        const content = this.getContentElement();
         for (const record of records) {
             if (record.target === content || (record.target instanceof HTMLElement && Template_1.isChildOf(record.target, content))) {
                 this.removeDeniedNodes(record.addedNodes);
@@ -168,7 +168,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * Content focus handler.
      */
     focusHandler() {
-        const content = this.getContent();
+        const content = this.getContentElement();
         if (content.childNodes.length === 0 && this.paragraphTag !== 'br') {
             const range = document.createRange();
             const selection = window.getSelection();
@@ -183,7 +183,8 @@ let Template = Template_1 = class Template extends Control.Component {
      * Content change handler.
      */
     changeHandler() {
-        const content = this.getContent();
+        const content = this.getContentElement();
+        content.normalize();
         if (this.states.value !== content.innerHTML) {
             this.states.value = content.innerHTML;
             this.skeleton.dispatchEvent(new Event('change', { bubbles: true, cancelable: false }));
@@ -263,7 +264,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * Set editor value.
      */
     set value(value) {
-        const content = this.getContent();
+        const content = this.getContentElement();
         content.innerHTML = value;
         this.states.value = content.innerHTML;
     }
@@ -290,7 +291,7 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set readOnly(state) {
         this.states.readOnly = state;
-        this.getContent().contentEditable = (!(state || this.disabled)).toString();
+        this.getContentElement().contentEditable = (!(state || this.disabled)).toString();
     }
     /**
      * Get disabled state.
@@ -303,7 +304,7 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     set disabled(state) {
         this.states.disabled = state;
-        this.getContent().contentEditable = (!(state || this.readOnly)).toString();
+        this.getContentElement().contentEditable = (!(state || this.readOnly)).toString();
         Control.setChildrenProperty(this.toolbarSlot, 'disabled', state);
     }
     /**
@@ -353,35 +354,35 @@ let Template = Template_1 = class Template extends Control.Component {
      * @param tag HTML tag.
      */
     formatAction(tag) {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('formatBlock', false, tag);
     }
     /**
      * Undoes the last executed command.
      */
     undoAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('undo');
     }
     /**
      * Redoes the previous undo command.
      */
     redoAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('redo');
     }
     /**
      * Toggles bold on/off for the selection or at the insertion point.
      */
     boldAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('bold');
     }
     /**
      * Toggles italics on/off for the selection or at the insertion point.
      */
     italicAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('italic');
     }
     /**
@@ -389,13 +390,13 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     underlineAction() {
         document.execCommand('underline');
-        this.getContent().focus();
+        this.getContentElement().focus();
     }
     /**
      * Toggles strikeThrough on/off for the selection or at the insertion point.
      */
     strikeThroughAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('strikeThrough');
     }
     /**
@@ -403,76 +404,76 @@ let Template = Template_1 = class Template extends Control.Component {
      */
     unorderedListAction() {
         document.execCommand('insertUnorderedList');
-        this.getContent().focus();
+        this.getContentElement().focus();
     }
     /**
      * Creates a numbered ordered list for the selection or at the insertion point.
      */
     orderedListAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('insertOrderedList');
     }
     /**
      * Justifies the selection or insertion point to the left.
      */
     alignLeftAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('justifyLeft');
     }
     /**
      * Justifies the selection or insertion point to the center.
      */
     alignCenterAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('justifyCenter');
     }
     /**
      * Justifies the selection or insertion point to the right.
      */
     alignRightAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('justifyRight');
     }
     /**
      * Justifies the selection or insertion point.
      */
     alignJustifyAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('justifyFull');
     }
     /**
      * Outdents the line containing the selection or insertion point.
      */
     outdentAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('outdent');
     }
     /**
      * Indents the line containing the selection or insertion point.
      */
     indentAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('indent');
     }
     /**
      * Removes the current selection and copies it to the clipboard.
      */
     cutAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('cut');
     }
     /**
      * Copies the current selection to the clipboard.
      */
     copyAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('copy');
     }
     /**
      * Pastes the clipboard contents at the insertion point.
      */
     pasteAction() {
-        this.getContent().focus();
+        this.getContentElement().focus();
         document.execCommand('paste');
     }
     /**
@@ -482,7 +483,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * @returns Returns the active styles map.
      */
     getStyles(node, map) {
-        const content = this.getContent();
+        const content = this.getContentElement();
         const styles = map || { ...Template_1.defaultStyles };
         while (node && node !== content) {
             if (node instanceof HTMLElement) {
@@ -576,8 +577,10 @@ Template.stylesByTag = {
     i: 'italic',
     em: 'italic',
     u: 'underline',
+    ins: 'underline',
     s: 'strikeThrough',
     strike: 'strikeThrough',
+    del: 'strikeThrough',
     ul: 'unorderedList',
     ol: 'orderedList',
     p: 'paragraph',
@@ -622,7 +625,7 @@ __decorate([
 ], Template.prototype, "skeleton", void 0);
 __decorate([
     Class.Private()
-], Template.prototype, "getContent", null);
+], Template.prototype, "getContentElement", null);
 __decorate([
     Class.Private()
 ], Template.prototype, "removeDeniedNodes", null);
