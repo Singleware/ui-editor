@@ -159,7 +159,7 @@ let Template = Template_1 = class Template extends Control.Component {
     mutationHandler(records) {
         const content = this.getContentElement();
         for (const record of records) {
-            if (record.target === content || (record.target instanceof HTMLElement && Template_1.isChildOf(record.target, content))) {
+            if (record.target === content || (record.target instanceof HTMLElement && DOM.childOf(content, record.target))) {
                 this.removeDeniedNodes(record.addedNodes);
             }
         }
@@ -507,21 +507,6 @@ let Template = Template_1 = class Template extends Control.Component {
         return styles;
     }
     /**
-     * Determines whether the specified element is child of the specified parent element.
-     * @param element Child element.
-     * @param parent Parent element.
-     * @returns Returns true when the specified element is child of the specified parent element, false otherwise.
-     */
-    static isChildOf(child, parent) {
-        while (child.parentElement) {
-            if (child.parentElement === parent) {
-                return true;
-            }
-            child = child.parentElement;
-        }
-        return false;
-    }
-    /**
      * Collect all styles by its respective CSS declaration.
      * @param styles Styles map.
      * @param css CSS declarations.
@@ -743,9 +728,6 @@ __decorate([
 __decorate([
     Class.Private()
 ], Template, "stylesByCSS", void 0);
-__decorate([
-    Class.Private()
-], Template, "isChildOf", null);
 __decorate([
     Class.Private()
 ], Template, "collectStylesByCSS", null);

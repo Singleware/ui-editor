@@ -232,13 +232,6 @@ export declare class Template extends Control.Component<Properties> {
      */
     private static stylesByCSS;
     /**
-     * Determines whether the specified element is child of the specified parent element.
-     * @param element Child element.
-     * @param parent Parent element.
-     * @returns Returns true when the specified element is child of the specified parent element, false otherwise.
-     */
-    private static isChildOf;
-    /**
      * Collect all styles by its respective CSS declaration.
      * @param styles Styles map.
      * @param css CSS declarations.

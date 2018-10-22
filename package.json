@@ -7,7 +7,7 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@singleware/class": "^1.1.12",
-    "@singleware/jsx": "^1.0.12",
+    "@singleware/jsx": "^1.0.14",
     "@singleware/ui-control": "^1.1.2"
   },
   "devDependencies": {

@@ -174,7 +174,7 @@ export class Template extends Control.Component<Properties> {
   private mutationHandler(records: MutationRecord[]): void {
     const content = this.getContentElement();
     for (const record of records) {
-      if (record.target === content || (record.target instanceof HTMLElement && Template.isChildOf(record.target, content))) {
+      if (record.target === content || (record.target instanceof HTMLElement && DOM.childOf(content, record.target))) {
         this.removeDeniedNodes(record.addedNodes);
       }
     }
@@ -672,23 +672,6 @@ export class Template extends Control.Component<Properties> {
       justify: 'alignJustify'
     }
   } as any;
-
-  /**
-   * Determines whether the specified element is child of the specified parent element.
-   * @param element Child element.
-   * @param parent Parent element.
-   * @returns Returns true when the specified element is child of the specified parent element, false otherwise.
-   */
-  @Class.Private()
-  private static isChildOf(child: HTMLElement, parent: HTMLElement): boolean {
-    while (child.parentElement) {
-      if (child.parentElement === parent) {
-        return true;
-      }
-      child = child.parentElement;
-    }
-    return false;
-  }
 
   /**
    * Collect all styles by its respective CSS declaration.
