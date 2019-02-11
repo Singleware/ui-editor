@@ -7,12 +7,13 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.19",
+  "version": "1.0.24",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
     "editor",
     "ui editor",
+    "native html editor",
     "user interface",
     "shadow dom",
     "browser"
@@ -21,16 +22,13 @@
     "type": "git",
     "url": "https://github.com/singleware/ui-editor"
   },
-  "engines": {
-    "node": ">=8"
-  },
   "dependencies": {
-    "@singleware/class": "^1.1.12",
-    "@singleware/jsx": "^1.0.14",
-    "@singleware/ui-control": "^1.1.2"
+    "@singleware/class": "^1.1.19",
+    "@singleware/jsx": "^1.0.20",
+    "@singleware/ui-control": "^1.1.10"
   },
   "devDependencies": {
-    "prettier": "^1.14.3",
+    "prettier": "^1.16.4",
     "typescript": "^2.9.2"
   },
   "prettier": {

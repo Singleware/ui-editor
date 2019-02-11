@@ -132,6 +132,69 @@ let Template = Template_1 = class Template extends Control.Component {
         this.assignProperties();
     }
     /**
+     * Collect all styles by its respective CSS declaration.
+     * @param styles Styles map.
+     * @param declarations CSS declarations.
+     */
+    static collectStylesByCSS(styles, declarations) {
+        for (const entry in this.stylesByCSSDeclaration) {
+            const value = declarations[entry];
+            const style = this.stylesByCSSDeclaration[entry];
+            if (style) {
+                if (style.targets) {
+                    const property = style.targets[value];
+                    if (property) {
+                        styles[property] = value;
+                    }
+                }
+                else if (style.target) {
+                    styles[style.target] = value;
+                }
+            }
+        }
+    }
+    /**
+     * Collect all styles by its respective element name.
+     * @param styles Styles map.
+     * @param element HTML element.
+     */
+    static collectStylesByElement(styles, element) {
+        const entries = this.stylesByElementName[element.tagName.toLowerCase()];
+        if (entries) {
+            for (const entry of entries) {
+                const style = entries[entry];
+                if (style && style.target) {
+                    if (style.source) {
+                        styles[style.target] = element.getAttribute(style.source);
+                    }
+                    else {
+                        styles[style.target] = true;
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Performs the specified command with the given value.
+     * @param commandId Command to be performed
+     * @param value Command value.
+     */
+    performAction(commandId, value) {
+        this.getContentElement().focus();
+        document.execCommand(commandId, false, value);
+    }
+    /**
+     * Performs the specified command with the given value using CSS styles.
+     * @param commandId Command to be performed
+     * @param value Command value.
+     */
+    performActionWithCSS(commandId, value) {
+        const status = document.queryCommandState('styleWithCSS');
+        document.execCommand('styleWithCSS', false, true);
+        this.performAction(commandId, value);
+        document.execCommand('styleWithCSS', false, status);
+    }
+    /**
      * Gets the content element.
      */
     getContentElement() {
@@ -212,6 +275,9 @@ let Template = Template_1 = class Template extends Control.Component {
             'deniedTags',
             'orientation',
             'formatAction',
+            'fontNameAction',
+            'fontSizeAction',
+            'fontColorAction',
             'undoAction',
             'redoAction',
             'boldAction',
@@ -317,7 +383,7 @@ let Template = Template_1 = class Template extends Control.Component {
      * Set HTML paragraph tag.
      */
     set paragraphTag(type) {
-        document.execCommand('defaultParagraphSeparator', false, (this.states.paragraphTag = type.toLowerCase()));
+        this.performAction('defaultParagraphSeparator', (this.states.paragraphTag = type.toLowerCase()));
     }
     /**
      * Get HTML denied tag.
@@ -354,127 +420,130 @@ let Template = Template_1 = class Template extends Control.Component {
      * @param tag HTML tag.
      */
     formatAction(tag) {
-        this.getContentElement().focus();
-        document.execCommand('formatBlock', false, tag);
+        this.performAction('formatBlock', tag);
+    }
+    /**
+     * Formats the specified font name for the selection or at the insertion point.
+     * @param name Font name.
+     */
+    fontNameAction(name) {
+        this.performActionWithCSS('fontName', name);
+    }
+    /**
+     * Formats the specified font size for the selection or at the insertion point.
+     * @param size Font size.
+     */
+    fontSizeAction(size) {
+        this.performActionWithCSS('fontSize', size);
+    }
+    /**
+     * Formats the specified font color for the selection or at the insertion point.
+     * @param color Font color.
+     */
+    fontColorAction(color) {
+        this.performActionWithCSS('foreColor', color);
     }
     /**
      * Undoes the last executed command.
      */
     undoAction() {
-        this.getContentElement().focus();
-        document.execCommand('undo');
+        this.performAction('undo');
     }
     /**
      * Redoes the previous undo command.
      */
     redoAction() {
-        this.getContentElement().focus();
-        document.execCommand('redo');
+        this.performAction('redo');
     }
     /**
      * Toggles bold on/off for the selection or at the insertion point.
      */
     boldAction() {
-        this.getContentElement().focus();
-        document.execCommand('bold');
+        this.performAction('bold');
     }
     /**
      * Toggles italics on/off for the selection or at the insertion point.
      */
     italicAction() {
-        this.getContentElement().focus();
-        document.execCommand('italic');
+        this.performAction('italic');
     }
     /**
      * Toggles underline on/off for the selection or at the insertion point.
      */
     underlineAction() {
-        document.execCommand('underline');
-        this.getContentElement().focus();
+        this.performAction('underline');
     }
     /**
      * Toggles strikeThrough on/off for the selection or at the insertion point.
      */
     strikeThroughAction() {
-        this.getContentElement().focus();
-        document.execCommand('strikeThrough');
+        this.performAction('strikeThrough');
     }
     /**
      * Creates a bulleted unordered list for the selection or at the insertion point.
      */
     unorderedListAction() {
-        document.execCommand('insertUnorderedList');
-        this.getContentElement().focus();
+        this.performAction('insertUnorderedList');
     }
     /**
      * Creates a numbered ordered list for the selection or at the insertion point.
      */
     orderedListAction() {
-        this.getContentElement().focus();
-        document.execCommand('insertOrderedList');
+        this.performAction('insertOrderedList');
     }
     /**
      * Justifies the selection or insertion point to the left.
      */
     alignLeftAction() {
-        this.getContentElement().focus();
-        document.execCommand('justifyLeft');
+        this.performAction('justifyLeft');
     }
     /**
      * Justifies the selection or insertion point to the center.
      */
     alignCenterAction() {
-        this.getContentElement().focus();
-        document.execCommand('justifyCenter');
+        this.performAction('justifyCenter');
     }
     /**
      * Justifies the selection or insertion point to the right.
      */
     alignRightAction() {
-        this.getContentElement().focus();
-        document.execCommand('justifyRight');
+        this.performAction('justifyRight');
     }
     /**
      * Justifies the selection or insertion point.
      */
     alignJustifyAction() {
-        this.getContentElement().focus();
-        document.execCommand('justifyFull');
+        this.performAction('justifyFull');
     }
     /**
      * Outdents the line containing the selection or insertion point.
      */
     outdentAction() {
-        this.getContentElement().focus();
-        document.execCommand('outdent');
+        this.performAction('outdent');
     }
     /**
      * Indents the line containing the selection or insertion point.
      */
     indentAction() {
-        this.getContentElement().focus();
-        document.execCommand('indent');
+        this.performAction('indent');
     }
     /**
      * Removes the current selection and copies it to the clipboard.
      */
     cutAction() {
-        this.getContentElement().focus();
-        document.execCommand('cut');
+        this.performAction('cut');
     }
     /**
      * Copies the current selection to the clipboard.
      */
     copyAction() {
-        this.getContentElement().focus();
-        document.execCommand('copy');
+        this.performAction('copy');
     }
     /**
      * Pastes the clipboard contents at the insertion point.
      */
     pasteAction() {
-        this.getContentElement().focus();
-        document.execCommand('paste');
+        this.performAction('paste');
     }
     /**
      * Gets the active styles map from the specified node.
@@ -506,30 +575,6 @@ let Template = Template_1 = class Template extends Control.Component {
         }
         return styles;
     }
-    /**
-     * Collect all styles by its respective CSS declaration.
-     * @param styles Styles map.
-     * @param css CSS declarations.
-     */
-    static collectStylesByCSS(styles, css) {
-        for (const declaration in this.stylesByCSS) {
-            const property = this.stylesByCSS[declaration][css[declaration]];
-            if (property in styles) {
-                styles[property] = true;
-            }
-        }
-    }
-    /**
-     * Collect all styles by its respective element names.
-     * @param styles Styles map.
-     * @param element HTML element.
-     */
-    static collectStylesByElement(styles, element) {
-        const property = this.stylesByTag[element.tagName.toLowerCase()];
-        if (property in styles) {
-            styles[property] = true;
-        }
-    }
 };
 /**
  * Default styles.
@@ -551,41 +596,50 @@ Template.defaultStyles = {
     alignLeft: false,
     alignCenter: false,
     alignRight: false,
-    alignJustify: false
+    alignJustify: false,
+    fontName: '',
+    fontSize: '',
+    fontColor: ''
 };
 /**
- * Map of styles by tag.
+ * Map of style keys by element name.
  */
-Template.stylesByTag = {
-    b: 'bold',
-    strong: 'bold',
-    i: 'italic',
-    em: 'italic',
-    u: 'underline',
-    ins: 'underline',
-    s: 'strikeThrough',
-    strike: 'strikeThrough',
-    del: 'strikeThrough',
-    ul: 'unorderedList',
-    ol: 'orderedList',
-    p: 'paragraph',
-    h1: 'heading1',
-    h2: 'heading2',
-    h3: 'heading3',
-    h4: 'heading4',
-    h5: 'heading5',
-    h6: 'heading6'
+Template.stylesByElementName = {
+    b: [{ target: 'bold' }],
+    strong: [{ target: 'bold' }],
+    i: [{ target: 'italic' }],
+    em: [{ target: 'italic' }],
+    u: [{ target: 'underline' }],
+    ins: [{ target: 'underline' }],
+    s: [{ target: 'strikeThrough' }],
+    strike: [{ target: 'strikeThrough' }],
+    del: [{ target: 'strikeThrough' }],
+    ul: [{ target: 'unorderedList' }],
+    ol: [{ target: 'orderedList' }],
+    p: [{ target: 'paragraph' }],
+    h1: [{ target: 'heading1' }],
+    h2: [{ target: 'heading2' }],
+    h3: [{ target: 'heading3' }],
+    h4: [{ target: 'heading4' }],
+    h5: [{ target: 'heading5' }],
+    h6: [{ target: 'heading6' }],
+    font: [{ target: 'faceName', source: 'face' }, { target: 'fontSize', source: 'size' }, { target: 'fontColor', source: 'color' }]
 };
 /**
- * Map of styles by CSS.
+ * Map of styles by CSS declaration.
  */
-Template.stylesByCSS = {
+Template.stylesByCSSDeclaration = {
     textAlign: {
-        left: 'alignLeft',
-        center: 'alignCenter',
-        right: 'alignRight',
-        justify: 'alignJustify'
-    }
+        targets: {
+            left: 'alignLeft',
+            center: 'alignCenter',
+            right: 'alignRight',
+            justify: 'alignJustify'
+        }
+    },
+    fontSize: { target: 'fontSize' },
+    fontFamily: { target: 'fontName' },
+    color: { target: 'fontColor' }
 };
 __decorate([
     Class.Private()
@@ -608,6 +662,12 @@ __decorate([
 __decorate([
     Class.Private()
 ], Template.prototype, "skeleton", void 0);
+__decorate([
+    Class.Private()
+], Template.prototype, "performAction", null);
+__decorate([
+    Class.Private()
+], Template.prototype, "performActionWithCSS", null);
 __decorate([
     Class.Private()
 ], Template.prototype, "getContentElement", null);
@@ -662,6 +722,15 @@ __decorate([
 __decorate([
     Class.Public()
 ], Template.prototype, "formatAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "fontNameAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "fontSizeAction", null);
+__decorate([
+    Class.Public()
+], Template.prototype, "fontColorAction", null);
 __decorate([
     Class.Public()
 ], Template.prototype, "undoAction", null);
@@ -724,10 +793,10 @@ __decorate([
 ], Template, "defaultStyles", void 0);
 __decorate([
     Class.Private()
-], Template, "stylesByTag", void 0);
+], Template, "stylesByElementName", void 0);
 __decorate([
     Class.Private()
-], Template, "stylesByCSS", void 0);
+], Template, "stylesByCSSDeclaration", void 0);
 __decorate([
     Class.Private()
 ], Template, "collectStylesByCSS", null);

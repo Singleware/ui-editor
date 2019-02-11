@@ -7,6 +7,18 @@ import { Styles } from './styles';
  */
 export declare class Template extends Control.Component<Properties> {
     /**
+     * Default styles.
+     */
+    private static defaultStyles;
+    /**
+     * Map of style keys by element name.
+     */
+    private static stylesByElementName;
+    /**
+     * Map of styles by CSS declaration.
+     */
+    private static stylesByCSSDeclaration;
+    /**
      * Editor states.
      */
     private states;
@@ -34,6 +46,30 @@ export declare class Template extends Control.Component<Properties> {
      * Editor skeleton.
      */
     private skeleton;
+    /**
+     * Collect all styles by its respective CSS declaration.
+     * @param styles Styles map.
+     * @param declarations CSS declarations.
+     */
+    private static collectStylesByCSS;
+    /**
+     * Collect all styles by its respective element name.
+     * @param styles Styles map.
+     * @param element HTML element.
+     */
+    private static collectStylesByElement;
+    /**
+     * Performs the specified command with the given value.
+     * @param commandId Command to be performed
+     * @param value Command value.
+     */
+    private performAction;
+    /**
+     * Performs the specified command with the given value using CSS styles.
+     * @param commandId Command to be performed
+     * @param value Command value.
+     */
+    private performActionWithCSS;
     /**
      * Gets the content element.
      */
@@ -140,6 +176,21 @@ export declare class Template extends Control.Component<Properties> {
      */
     formatAction(tag: string): void;
     /**
+     * Formats the specified font name for the selection or at the insertion point.
+     * @param name Font name.
+     */
+    fontNameAction(name: string): void;
+    /**
+     * Formats the specified font size for the selection or at the insertion point.
+     * @param size Font size.
+     */
+    fontSizeAction(size: string): void;
+    /**
+     * Formats the specified font color for the selection or at the insertion point.
+     * @param color Font color.
+     */
+    fontColorAction(color: string): void;
+    /**
      * Undoes the last executed command.
      */
     undoAction(): void;
@@ -219,28 +270,4 @@ export declare class Template extends Control.Component<Properties> {
      * @returns Returns the active styles map.
      */
     getCurrentStyles(): Styles;
-    /**
-     * Default styles.
-     */
-    private static defaultStyles;
-    /**
-     * Map of styles by tag.
-     */
-    private static stylesByTag;
-    /**
-     * Map of styles by CSS.
-     */
-    private static stylesByCSS;
-    /**
-     * Collect all styles by its respective CSS declaration.
-     * @param styles Styles map.
-     * @param css CSS declarations.
-     */
-    private static collectStylesByCSS;
-    /**
-     * Collect all styles by its respective element names.
-     * @param styles Styles map.
-     * @param element HTML element.
-     */
-    private static collectStylesByElement;
 }

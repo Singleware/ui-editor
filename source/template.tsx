@@ -17,6 +17,77 @@ import { Styles } from './styles';
 @Class.Describe()
 export class Template extends Control.Component<Properties> {
   /**
+   * Default styles.
+   */
+  @Class.Private()
+  private static defaultStyles = {
+    bold: false,
+    italic: false,
+    underline: false,
+    strikeThrough: false,
+    unorderedList: false,
+    orderedList: false,
+    paragraph: false,
+    heading1: false,
+    heading2: false,
+    heading3: false,
+    heading4: false,
+    heading5: false,
+    heading6: false,
+    alignLeft: false,
+    alignCenter: false,
+    alignRight: false,
+    alignJustify: false,
+    fontName: '',
+    fontSize: '',
+    fontColor: ''
+  } as Styles;
+
+  /**
+   * Map of style keys by element name.
+   */
+  @Class.Private()
+  private static stylesByElementName = {
+    b: [{ target: 'bold' }],
+    strong: [{ target: 'bold' }],
+    i: [{ target: 'italic' }],
+    em: [{ target: 'italic' }],
+    u: [{ target: 'underline' }],
+    ins: [{ target: 'underline' }],
+    s: [{ target: 'strikeThrough' }],
+    strike: [{ target: 'strikeThrough' }],
+    del: [{ target: 'strikeThrough' }],
+    ul: [{ target: 'unorderedList' }],
+    ol: [{ target: 'orderedList' }],
+    p: [{ target: 'paragraph' }],
+    h1: [{ target: 'heading1' }],
+    h2: [{ target: 'heading2' }],
+    h3: [{ target: 'heading3' }],
+    h4: [{ target: 'heading4' }],
+    h5: [{ target: 'heading5' }],
+    h6: [{ target: 'heading6' }],
+    font: [{ target: 'faceName', source: 'face' }, { target: 'fontSize', source: 'size' }, { target: 'fontColor', source: 'color' }]
+  } as any;
+
+  /**
+   * Map of styles by CSS declaration.
+   */
+  @Class.Private()
+  private static stylesByCSSDeclaration = {
+    textAlign: {
+      targets: {
+        left: 'alignLeft',
+        center: 'alignCenter',
+        right: 'alignRight',
+        justify: 'alignJustify'
+      }
+    },
+    fontSize: { target: 'fontSize' },
+    fontFamily: { target: 'fontName' },
+    color: { target: 'fontColor' }
+  } as any;
+
+  /**
    * Editor states.
    */
   @Class.Private()
@@ -142,6 +213,75 @@ export class Template extends Control.Component<Properties> {
   ) as Element;
 
   /**
+   * Collect all styles by its respective CSS declaration.
+   * @param styles Styles map.
+   * @param declarations CSS declarations.
+   */
+  @Class.Private()
+  private static collectStylesByCSS(styles: Styles, declarations: CSSStyleDeclaration): void {
+    for (const entry in this.stylesByCSSDeclaration) {
+      const value = (declarations as any)[entry];
+      const style = this.stylesByCSSDeclaration[entry];
+      if (style) {
+        if (style.targets) {
+          const property = style.targets[value];
+          if (property) {
+            (styles as any)[property] = value;
+          }
+        } else if (style.target) {
+          (styles as any)[style.target] = value;
+        }
+      }
+    }
+  }
+
+  /**
+   * Collect all styles by its respective element name.
+   * @param styles Styles map.
+   * @param element HTML element.
+   */
+  @Class.Private()
+  private static collectStylesByElement(styles: Styles, element: HTMLElement): void {
+    const entries = this.stylesByElementName[element.tagName.toLowerCase()];
+    if (entries) {
+      for (const entry of entries) {
+        const style = entries[entry];
+        if (style && style.target) {
+          if (style.source) {
+            (styles as any)[style.target] = element.getAttribute(style.source);
+          } else {
+            (styles as any)[style.target] = true;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Performs the specified command with the given value.
+   * @param commandId Command to be performed
+   * @param value Command value.
+   */
+  @Class.Private()
+  private performAction(commandId: string, value?: any): void {
+    this.getContentElement().focus();
+    document.execCommand(commandId, false, value);
+  }
+
+  /**
+   * Performs the specified command with the given value using CSS styles.
+   * @param commandId Command to be performed
+   * @param value Command value.
+   */
+  @Class.Private()
+  private performActionWithCSS(commandId: string, value?: any): void {
+    const status = document.queryCommandState('styleWithCSS');
+    document.execCommand('styleWithCSS', false, true as any);
+    this.performAction(commandId, value);
+    document.execCommand('styleWithCSS', false, status as any);
+  }
+
+  /**
    * Gets the content element.
    */
   @Class.Private()
@@ -235,6 +375,9 @@ export class Template extends Control.Component<Properties> {
       'deniedTags',
       'orientation',
       'formatAction',
+      'fontNameAction',
+      'fontSizeAction',
+      'fontColorAction',
       'undoAction',
       'redoAction',
       'boldAction',
@@ -373,7 +516,7 @@ export class Template extends Control.Component<Properties> {
    * Set HTML paragraph tag.
    */
   public set paragraphTag(type: string) {
-    document.execCommand('defaultParagraphSeparator', false, (this.states.paragraphTag = type.toLowerCase()));
+    this.performAction('defaultParagraphSeparator', (this.states.paragraphTag = type.toLowerCase()));
   }
 
   /**
@@ -420,8 +563,34 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public formatAction(tag: string): void {
-    this.getContentElement().focus();
-    document.execCommand('formatBlock', false, tag);
+    this.performAction('formatBlock', tag);
+  }
+
+  /**
+   * Formats the specified font name for the selection or at the insertion point.
+   * @param name Font name.
+   */
+  @Class.Public()
+  public fontNameAction(name: string): void {
+    this.performActionWithCSS('fontName', name);
+  }
+
+  /**
+   * Formats the specified font size for the selection or at the insertion point.
+   * @param size Font size.
+   */
+  @Class.Public()
+  public fontSizeAction(size: string): void {
+    this.performActionWithCSS('fontSize', size);
+  }
+
+  /**
+   * Formats the specified font color for the selection or at the insertion point.
+   * @param color Font color.
+   */
+  @Class.Public()
+  public fontColorAction(color: string): void {
+    this.performActionWithCSS('foreColor', color);
   }
 
   /**
@@ -429,8 +598,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public undoAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('undo');
+    this.performAction('undo');
   }
 
   /**
@@ -438,8 +606,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public redoAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('redo');
+    this.performAction('redo');
   }
 
   /**
@@ -447,8 +614,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public boldAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('bold');
+    this.performAction('bold');
   }
 
   /**
@@ -456,8 +622,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public italicAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('italic');
+    this.performAction('italic');
   }
 
   /**
@@ -465,8 +630,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public underlineAction(): void {
-    document.execCommand('underline');
-    this.getContentElement().focus();
+    this.performAction('underline');
   }
 
   /**
@@ -474,8 +638,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public strikeThroughAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('strikeThrough');
+    this.performAction('strikeThrough');
   }
 
   /**
@@ -483,8 +646,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public unorderedListAction(): void {
-    document.execCommand('insertUnorderedList');
-    this.getContentElement().focus();
+    this.performAction('insertUnorderedList');
   }
 
   /**
@@ -492,8 +654,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public orderedListAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('insertOrderedList');
+    this.performAction('insertOrderedList');
   }
 
   /**
@@ -501,8 +662,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignLeftAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('justifyLeft');
+    this.performAction('justifyLeft');
   }
 
   /**
@@ -510,8 +670,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignCenterAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('justifyCenter');
+    this.performAction('justifyCenter');
   }
 
   /**
@@ -519,8 +678,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignRightAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('justifyRight');
+    this.performAction('justifyRight');
   }
 
   /**
@@ -528,8 +686,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public alignJustifyAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('justifyFull');
+    this.performAction('justifyFull');
   }
 
   /**
@@ -537,8 +694,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public outdentAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('outdent');
+    this.performAction('outdent');
   }
 
   /**
@@ -546,8 +702,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public indentAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('indent');
+    this.performAction('indent');
   }
 
   /**
@@ -555,8 +710,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public cutAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('cut');
+    this.performAction('cut');
   }
 
   /**
@@ -564,8 +718,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public copyAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('copy');
+    this.performAction('copy');
   }
 
   /**
@@ -573,8 +726,7 @@ export class Template extends Control.Component<Properties> {
    */
   @Class.Public()
   public pasteAction(): void {
-    this.getContentElement().focus();
-    document.execCommand('paste');
+    this.performAction('paste');
   }
 
   /**
@@ -609,95 +761,5 @@ export class Template extends Control.Component<Properties> {
       this.getStyles(selection.focusNode, styles);
     }
     return styles;
-  }
-
-  /**
-   * Default styles.
-   */
-  @Class.Private()
-  private static defaultStyles = {
-    bold: false,
-    italic: false,
-    underline: false,
-    strikeThrough: false,
-    unorderedList: false,
-    orderedList: false,
-    paragraph: false,
-    heading1: false,
-    heading2: false,
-    heading3: false,
-    heading4: false,
-    heading5: false,
-    heading6: false,
-    alignLeft: false,
-    alignCenter: false,
-    alignRight: false,
-    alignJustify: false
-  } as Styles;
-
-  /**
-   * Map of styles by tag.
-   */
-  @Class.Private()
-  private static stylesByTag = {
-    b: 'bold',
-    strong: 'bold',
-    i: 'italic',
-    em: 'italic',
-    u: 'underline',
-    ins: 'underline',
-    s: 'strikeThrough',
-    strike: 'strikeThrough',
-    del: 'strikeThrough',
-    ul: 'unorderedList',
-    ol: 'orderedList',
-    p: 'paragraph',
-    h1: 'heading1',
-    h2: 'heading2',
-    h3: 'heading3',
-    h4: 'heading4',
-    h5: 'heading5',
-    h6: 'heading6'
-  } as any;
-
-  /**
-   * Map of styles by CSS.
-   */
-  @Class.Private()
-  private static stylesByCSS = {
-    textAlign: {
-      left: 'alignLeft',
-      center: 'alignCenter',
-      right: 'alignRight',
-      justify: 'alignJustify'
-    }
-  } as any;
-
-  /**
-   * Collect all styles by its respective CSS declaration.
-   * @param styles Styles map.
-   * @param css CSS declarations.
-   */
-  @Class.Private()
-  private static collectStylesByCSS(styles: Styles, css: CSSStyleDeclaration): void {
-    for (const declaration in this.stylesByCSS) {
-      const property = this.stylesByCSS[declaration][(css as any)[declaration]];
-      if (property in styles) {
-        (styles as any)[property] = true;
-      }
-    }
-  }
-
-  /**
-   * Collect all styles by its respective element names.
-   * @param styles Styles map.
-   * @param element HTML element.
-   */
-  @Class.Private()
-  private static collectStylesByElement(styles: Styles, element: HTMLElement): void {
-    const property = this.stylesByTag[element.tagName.toLowerCase()];
-    if (property in styles) {
-      (styles as any)[property] = true;
-    }
   }
 }

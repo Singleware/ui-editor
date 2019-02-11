@@ -8,71 +8,83 @@
  */
 export interface Styles {
   /**
-   * Bold selection.
+   * Bold.
    */
   bold: boolean;
   /**
-   * Italic selection.
+   * Italic.
    */
   italic: boolean;
   /**
-   * Underline selection.
+   * Underline.
    */
   underline: boolean;
   /**
-   * Strike-Through selection.
+   * Strike-Through.
    */
   strikeThrough: boolean;
   /**
-   * Unordered-List selection.
+   * Unordered-List.
    */
   unorderedList: boolean;
   /**
-   * Ordered-List selection.
+   * Ordered-List.
    */
   orderedList: boolean;
   /**
-   * Paragraph selection.
+   * Paragraph.
    */
   paragraph: boolean;
   /**
-   * Heading 1 selection.
+   * Heading 1.
    */
   heading1: boolean;
   /**
-   * Heading 2 selection.
+   * Heading 2.
    */
   heading2: boolean;
   /**
-   * Heading 3 selection.
+   * Heading 3.
    */
   heading3: boolean;
   /**
-   * Heading 4 selection.
+   * Heading 4.
    */
   heading4: boolean;
   /**
-   * Heading 5 selection.
+   * Heading 5.
    */
   heading5: boolean;
   /**
-   * Heading 6 selection.
+   * Heading 6.
    */
   heading6: boolean;
   /**
-   * Align-Left selection.
+   * Align-Left.
    */
   alignLeft: boolean;
   /**
-   * Align-Center selection.
+   * Align-Center.
    */
   alignCenter: boolean;
   /**
-   * Align-Right selection.
+   * Align-Right.
    */
   alignRight: boolean;
   /**
-   * Align-Justify selection.
+   * Align-Justify.
    */
   alignJustify: boolean;
+  /**
+   * Font name.
+   */
+  fontName: string;
+  /**
+   * Font size.
+   */
+  fontSize: string;
+  /**
+   * Font color.
+   */
+  fontColor: string;
 }

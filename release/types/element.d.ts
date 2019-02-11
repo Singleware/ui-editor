@@ -42,6 +42,21 @@ export interface Element extends HTMLDivElement {
    */
   formatAction: (tag: string) => void;
   /**
+   * Formats the specified font name for the selection or at the insertion point.
+   * @param name Font name.
+   */
+  fontNameAction(name: string): void;
+  /**
+   * Formats the specified font size for the selection or at the insertion point.
+   * @param size Font size.
+   */
+  fontSizeAction(size: string): void;
+  /**
+   * Formats the specified font color for the selection or at the insertion point.
+   * @param size Font size.
+   */
+  fontColorAction(color: string): void;
+  /**
    * Undoes the last executed command.
    */
   undoAction: () => void;
