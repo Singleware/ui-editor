@@ -7,7 +7,7 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.24",
+  "version": "1.0.25",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
@@ -39,7 +39,7 @@
   },
   "scripts": {
     "build": "npm run make && npm run update",
-    "make": "tsc",
+    "make": "npx tsc -p ./source",
     "update": "cp -Rf ./source/*.d.ts ./release/types"
   }
 }

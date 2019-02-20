@@ -38,9 +38,9 @@ export class Template extends Control.Component<Properties> {
     alignCenter: false,
     alignRight: false,
     alignJustify: false,
-    fontName: '',
-    fontSize: '',
-    fontColor: ''
+    fontName: void 0,
+    fontSize: void 0,
+    fontColor: void 0
   } as Styles;
 
   /**
@@ -75,7 +75,7 @@ export class Template extends Control.Component<Properties> {
   @Class.Private()
   private static stylesByCSSDeclaration = {
     textAlign: {
-      targets: {
+      mapping: {
         left: 'alignLeft',
         center: 'alignCenter',
         right: 'alignRight',
@@ -223,13 +223,13 @@ export class Template extends Control.Component<Properties> {
       const value = (declarations as any)[entry];
       const style = this.stylesByCSSDeclaration[entry];
       if (style) {
-        if (style.targets) {
-          const property = style.targets[value];
+        if (style.mapping) {
+          const property = style.mapping[value];
           if (property) {
-            (styles as any)[property] = value;
+            (styles as any)[property] = true;
           }
         } else if (style.target) {
-          (styles as any)[style.target] = value;
+          (styles as any)[style.target] = value || void 0;
         }
       }
     }
@@ -248,7 +248,7 @@ export class Template extends Control.Component<Properties> {
         const style = entries[entry];
         if (style && style.target) {
           if (style.source) {
-            (styles as any)[style.target] = element.getAttribute(style.source);
+            (styles as any)[style.target] = element.getAttribute(style.source) || void 0;
           } else {
             (styles as any)[style.target] = true;
           }

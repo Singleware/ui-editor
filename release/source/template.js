@@ -141,14 +141,14 @@ let Template = Template_1 = class Template extends Control.Component {
             const value = declarations[entry];
             const style = this.stylesByCSSDeclaration[entry];
             if (style) {
-                if (style.targets) {
-                    const property = style.targets[value];
+                if (style.mapping) {
+                    const property = style.mapping[value];
                     if (property) {
-                        styles[property] = value;
+                        styles[property] = true;
                     }
                 }
                 else if (style.target) {
-                    styles[style.target] = value;
+                    styles[style.target] = value || void 0;
                 }
             }
         }
@@ -165,7 +165,7 @@ let Template = Template_1 = class Template extends Control.Component {
                 const style = entries[entry];
                 if (style && style.target) {
                     if (style.source) {
-                        styles[style.target] = element.getAttribute(style.source);
+                        styles[style.target] = element.getAttribute(style.source) || void 0;
                     }
                     else {
                         styles[style.target] = true;
@@ -597,9 +597,9 @@ Template.defaultStyles = {
     alignCenter: false,
     alignRight: false,
     alignJustify: false,
-    fontName: '',
-    fontSize: '',
-    fontColor: ''
+    fontName: void 0,
+    fontSize: void 0,
+    fontColor: void 0
 };
 /**
  * Map of style keys by element name.
@@ -630,7 +630,7 @@ Template.stylesByElementName = {
  */
 Template.stylesByCSSDeclaration = {
     textAlign: {
-        targets: {
+        mapping: {
             left: 'alignLeft',
             center: 'alignCenter',
             right: 'alignRight',

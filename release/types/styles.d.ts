@@ -78,13 +78,13 @@ export interface Styles {
   /**
    * Font name.
    */
-  fontName: string;
+  fontName: string | undefined;
   /**
    * Font size.
    */
-  fontSize: string;
+  fontSize: string | undefined;
   /**
    * Font color.
    */
-  fontColor: string;
+  fontColor: string | undefined;
 }
