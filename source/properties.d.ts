@@ -20,9 +20,13 @@ export interface Properties {
    */
   name?: string;
   /**
-   * Editor value entity.
+   * Editor value.
    */
   value?: any;
+  /**
+   * Editor default value.
+   */
+  defaultValue?: any;
   /**
    * Determines whether the editor is required or not.
    */
@@ -51,4 +55,8 @@ export interface Properties {
    * Editor children.
    */
   children?: {};
+  /**
+   * Editor change event.
+   */
+  onChange?: (event: Event) => void;
 }

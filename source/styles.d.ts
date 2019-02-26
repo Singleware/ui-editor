@@ -4,7 +4,7 @@
  */
 
 /**
- * Selection styles interface.
+ * Element styles interface.
  */
 export interface Styles {
   /**

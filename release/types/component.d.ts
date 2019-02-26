@@ -1,108 +1,19 @@
 import * as Control from '@singleware/ui-control';
+import { Properties } from './properties';
+import { Element } from './element';
 import { Styles } from './styles';
 /**
- * Editor element.
+ * Editor component class.
  */
-export declare class Element extends Control.Element {
+export declare class Component<T extends Properties = Properties> extends Control.Component<T> {
     /**
-     * Default styles.
+     * Element instance.
      */
-    private static defaultStyles;
+    private skeleton;
     /**
-     * Map of style keys by element name.
+     * Gets the element.
      */
-    private static stylesByElementName;
-    /**
-     * Map of styles by CSS declaration.
-     */
-    private static stylesByCSSDeclaration;
-    /**
-     * Collect all styles by its respective CSS declaration.
-     * @param styles Styles map.
-     * @param declarations CSS declarations.
-     */
-    private static collectStylesByCSS;
-    /**
-     * Collect all styles by its respective element name.
-     * @param styles Styles map.
-     * @param element HTML element.
-     */
-    private static collectStylesByElement;
-    /**
-     * List of denied tags in the editor.
-     */
-    private deniedTagList;
-    /**
-     * Cached HTML content.
-     */
-    private cachedHTML;
-    /**
-     * Content observer.
-     */
-    private observer;
-    /**
-     * Element styles.
-     */
-    private styles;
-    /**
-     * Toolbar element.
-     */
-    private toolbarSlot;
-    /**
-     * Content element.
-     */
-    private contentSlot;
-    /**
-     * Editor layout element.
-     */
-    private editorLayout;
-    /**
-     * Editor styles element.
-     */
-    private editorStyles;
-    /**
-     * Update all validation attributes.
-     */
-    private updateValidation;
-    /**
-     * Performs the specified command with the given value.
-     * @param commandId Command to be performed
-     * @param value Command value.
-     */
-    private performAction;
-    /**
-     * Performs the specified command with the given value using CSS styles.
-     * @param commandId Command to be performed
-     * @param value Command value.
-     */
-    private performActionWithCSS;
-    /**
-     * Filters the specified list to remove any denied node.
-     * @param list List of nodes or elements.
-     * @returns Returns the number of removed nodes.
-     */
-    private removeDeniedNodes;
-    /**
-     * Mutation handler.
-     * @param records Mutation record list.
-     */
-    private mutationHandler;
-    /**
-     * Content focus handler.
-     */
-    private contentFocusHandler;
-    /**
-     * Content change handler.
-     */
-    private contentChangeHandler;
-    /**
-     * Updates the current selection into the new input slot element.
-     */
-    private contentSlotChangeHandler;
-    /**
-     * Default constructor.
-     */
-    constructor();
+    readonly element: Element;
     /**
      * Determines whether the element is empty or not.
      */
@@ -122,8 +33,11 @@ export declare class Element extends Control.Element {
     */
     value: string;
     /**
-     * Default value for resets.
+     * Gets the element default value.
      */
+    /**
+    * Sets the element default value.
+    */
     defaultValue: string;
     /**
      * Gets the required state of the element.
@@ -168,22 +82,22 @@ export declare class Element extends Control.Element {
     */
     orientation: string;
     /**
-     * Formats the specified tag from the selection or insertion point.
+     * Formats the specified tag for the selection or insertion point.
      * @param tag HTML tag.
      */
     formatAction(tag: string): void;
     /**
-     * Formats the specified font name for the selection or at the insertion point.
+     * Change the font name for the selection or at the insertion point.
      * @param name Font name.
      */
     fontNameAction(name: string): void;
     /**
-     * Formats the specified font size for the selection or at the insertion point.
+     * Change the font size for the selection or at the insertion point.
      * @param size Font size.
      */
     fontSizeAction(size: string): void;
     /**
-     * Formats the specified font color for the selection or at the insertion point.
+     * Change the font color for the selection or at the insertion point.
      * @param color Font color.
      */
     fontColorAction(color: string): void;
@@ -263,8 +177,8 @@ export declare class Element extends Control.Element {
      */
     getStyles(node: Node, map?: Styles): Styles;
     /**
-     * Gets the active styles map from the focused node.
-     * @returns Returns the active styles map.
+     * Gets the styles map from the current focused node.
+     * @returns Returns the styles map.
      */
     getCurrentStyles(): Styles;
     /**

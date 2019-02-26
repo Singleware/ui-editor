@@ -7,10 +7,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * The proposal of this example is to show how to use the basic editor template.
  */
 const Editor = require("../source");
-const DOM = require("@singleware/jsx");
-const editor = (DOM.create(Editor.Template, null,
-    DOM.create("button", { slot: "toolbar" }, "Bold"),
-    DOM.create("button", { slot: "toolbar" }, "Italic"),
-    DOM.create("button", { slot: "toolbar" }, "Stroke"),
-    DOM.create("div", { slot: "content" }, "Primary content slot."),
-    DOM.create("div", { slot: "content" }, "Secondary content slot")));
+const JSX = require("@singleware/jsx");
+const editor = (JSX.create(Editor.Component, null,
+    JSX.create("button", { slot: "toolbar" }, "Bold"),
+    JSX.create("button", { slot: "toolbar" }, "Italic"),
+    JSX.create("button", { slot: "toolbar" }, "Stroke"),
+    JSX.create("div", { slot: "content" }, "Content slot.")));

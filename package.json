@@ -7,13 +7,14 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.25",
+  "version": "1.0.27",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
     "editor",
-    "ui editor",
-    "native html editor",
+    "wysiwyg",
+    "ui wysiwyg editor",
+    "native wysiwyg editor",
     "user interface",
     "shadow dom",
     "browser"
@@ -25,6 +26,7 @@
   "dependencies": {
     "@singleware/class": "^1.1.19",
     "@singleware/jsx": "^1.0.20",
+    "@singleware/oss": "^1.0.2",
     "@singleware/ui-control": "^1.1.10"
   },
   "devDependencies": {

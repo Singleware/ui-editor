@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "commonjs",
     "jsx": "react",
-    "jsxFactory": "DOM.create",
+    "jsxFactory": "JSX.create",
     "strict": true,
     "experimentalDecorators": true,
     "suppressExcessPropertyErrors": true,
