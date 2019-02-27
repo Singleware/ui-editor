@@ -7,7 +7,7 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.27",
+  "version": "1.0.28",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [

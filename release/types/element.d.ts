@@ -65,17 +65,31 @@ export declare class Element extends Control.Element {
      */
     private updateValidation;
     /**
-     * Performs the specified command with the given value.
-     * @param commandId Command to be performed
-     * @param value Command value.
+     * Unwraps the specified element.
+     * @param element Element instance.
      */
-    private performAction;
+    private unwrapElement;
     /**
-     * Performs the specified command with the given value using CSS styles.
-     * @param commandId Command to be performed
-     * @param value Command value.
+     * Cleans the specified element.
+     * @param element Element instance.
+     * @param tag Child tag name to be cleaned.
+     * @param properties CSS properties to be cleaned.
      */
-    private performActionWithCSS;
+    private cleanElement;
+    /**
+     * Performs a surrounding in the current selection with the specified tag.
+     * @param tag Tag name.
+     * @returns Returns the affected element instance.
+     * @throws Throws an error when there is no current selection.
+     */
+    private performSurrounding;
+    /**
+     * Performs the specified command with the given value.
+     * @param name Command name.
+     * @param value Command value.
+     * @returns Returns the affected element instance.
+     */
+    private performCommand;
     /**
      * Filters the specified list to remove any denied node.
      * @param list List of nodes or elements.
@@ -168,11 +182,6 @@ export declare class Element extends Control.Element {
     */
     orientation: string;
     /**
-     * Formats the specified tag from the selection or insertion point.
-     * @param tag HTML tag.
-     */
-    formatAction(tag: string): void;
-    /**
      * Formats the specified font name for the selection or at the insertion point.
      * @param name Font name.
      */
@@ -187,6 +196,11 @@ export declare class Element extends Control.Element {
      * @param color Font color.
      */
     fontColorAction(color: string): void;
+    /**
+     * Formats the specified tag from the selection or insertion point.
+     * @param tag HTML tag.
+     */
+    formatAction(tag: string): void;
     /**
      * Undoes the last executed command.
      */

@@ -242,27 +242,75 @@ export class Element extends Control.Element {
   }
 
   /**
-   * Performs the specified command with the given value.
-   * @param commandId Command to be performed
-   * @param value Command value.
+   * Unwraps the specified element.
+   * @param element Element instance.
    */
   @Class.Private()
-  private performAction(commandId: string, value?: any): void {
-    this.focus();
-    document.execCommand(commandId, false, value);
+  private unwrapElement(element: HTMLElement): void {
+    const parent = element.parentNode as Node;
+    while (parent && element.firstChild) {
+      parent.insertBefore(element.firstChild, element);
+    }
+    element.remove();
   }
 
   /**
-   * Performs the specified command with the given value using CSS styles.
-   * @param commandId Command to be performed
-   * @param value Command value.
+   * Cleans the specified element.
+   * @param element Element instance.
+   * @param tag Child tag name to be cleaned.
+   * @param properties CSS properties to be cleaned.
    */
   @Class.Private()
-  private performActionWithCSS(commandId: string, value?: any): void {
-    const status = document.queryCommandState('styleWithCSS');
-    document.execCommand('styleWithCSS', false, true as any);
-    this.performAction(commandId, value);
-    document.execCommand('styleWithCSS', false, status as any);
+  private cleanElement(element: HTMLElement, tag: string, ...properties: string[]): void {
+    for (const child of (element.children as any) as HTMLElement[]) {
+      this.cleanElement(child, tag, ...properties);
+      if (child.tagName.toLowerCase() === tag) {
+        for (const property of properties) {
+          (child.style as any)[property] = '';
+        }
+        const styles = child.getAttribute('style');
+        if (styles === null || styles.length === 0) {
+          this.unwrapElement(child);
+        }
+      }
+    }
+  }
+
+  /**
+   * Performs a surrounding in the current selection with the specified tag.
+   * @param tag Tag name.
+   * @returns Returns the affected element instance.
+   * @throws Throws an error when there is no current selection.
+   */
+  @Class.Private()
+  private performSurrounding(tag: string): HTMLElement {
+    this.focus();
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) {
+      throw new Error(`There is no current selection.`);
+    }
+    const range = selection.getRangeAt(0);
+    const ancestor = range.commonAncestorContainer.parentElement as HTMLElement;
+    if (ancestor.firstChild !== ancestor.lastChild || ancestor.tagName.toLowerCase() !== tag) {
+      const element = JSX.create(tag, {}) as HTMLElement;
+      range.surroundContents(element);
+      return element;
+    }
+    return ancestor;
+  }
+
+  /**
+   * Performs the specified command with the given value.
+   * @param name Command name.
+   * @param value Command value.
+   * @returns Returns the affected element instance.
+   */
+  @Class.Private()
+  private performCommand(name: string, value?: any): HTMLElement {
+    this.focus();
+    const selection = window.getSelection();
+    document.execCommand(name, false, value);
+    return selection.focusNode.parentElement as HTMLElement;
   }
 
   /**
@@ -330,6 +378,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private contentChangeHandler(): void {
     const content = this.getRequiredChildElement(this.contentSlot);
+    content.normalize();
     if (this.cachedHTML !== content.innerHTML) {
       const event = new Event('change', { bubbles: true, cancelable: true });
       if (this.dispatchEvent(event)) {
@@ -509,21 +558,14 @@ export class Element extends Control.Element {
   }
 
   /**
-   * Formats the specified tag from the selection or insertion point.
-   * @param tag HTML tag.
-   */
-  @Class.Public()
-  public formatAction(tag: string): void {
-    this.performAction('formatBlock', tag);
-  }
-
-  /**
    * Formats the specified font name for the selection or at the insertion point.
    * @param name Font name.
    */
   @Class.Public()
   public fontNameAction(name: string): void {
-    this.performActionWithCSS('fontName', name);
+    const element = this.performSurrounding('font');
+    this.cleanElement(element, 'font', 'fontFamily');
+    element.style.fontFamily = name;
   }
 
   /**
@@ -532,7 +574,9 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public fontSizeAction(size: string): void {
-    this.performActionWithCSS('fontSize', size);
+    const element = this.performSurrounding('font');
+    this.cleanElement(element, 'font', 'fontSize');
+    element.style.fontSize = size;
   }
 
   /**
@@ -541,7 +585,18 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public fontColorAction(color: string): void {
-    this.performActionWithCSS('foreColor', color);
+    const element = this.performSurrounding('font');
+    this.cleanElement(element, 'font', 'color');
+    element.style.color = color;
+  }
+
+  /**
+   * Formats the specified tag from the selection or insertion point.
+   * @param tag HTML tag.
+   */
+  @Class.Public()
+  public formatAction(tag: string): void {
+    this.performCommand('formatBlock', tag);
   }
 
   /**
@@ -549,7 +604,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public undoAction(): void {
-    this.performAction('undo');
+    this.performCommand('undo');
   }
 
   /**
@@ -557,7 +612,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public redoAction(): void {
-    this.performAction('redo');
+    this.performCommand('redo');
   }
 
   /**
@@ -565,7 +620,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public boldAction(): void {
-    this.performAction('bold');
+    this.performCommand('bold');
   }
 
   /**
@@ -573,7 +628,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public italicAction(): void {
-    this.performAction('italic');
+    this.performCommand('italic');
   }
 
   /**
@@ -581,7 +636,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public underlineAction(): void {
-    this.performAction('underline');
+    this.performCommand('underline');
   }
 
   /**
@@ -589,7 +644,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public strikeThroughAction(): void {
-    this.performAction('strikeThrough');
+    this.performCommand('strikeThrough');
   }
 
   /**
@@ -597,7 +652,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public unorderedListAction(): void {
-    this.performAction('insertUnorderedList');
+    this.performCommand('insertUnorderedList');
   }
 
   /**
@@ -605,7 +660,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public orderedListAction(): void {
-    this.performAction('insertOrderedList');
+    this.performCommand('insertOrderedList');
   }
 
   /**
@@ -613,7 +668,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public alignLeftAction(): void {
-    this.performAction('justifyLeft');
+    this.performCommand('justifyLeft');
   }
 
   /**
@@ -621,7 +676,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public alignCenterAction(): void {
-    this.performAction('justifyCenter');
+    this.performCommand('justifyCenter');
   }
 
   /**
@@ -629,7 +684,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public alignRightAction(): void {
-    this.performAction('justifyRight');
+    this.performCommand('justifyRight');
   }
 
   /**
@@ -637,7 +692,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public alignJustifyAction(): void {
-    this.performAction('justifyFull');
+    this.performCommand('justifyFull');
   }
 
   /**
@@ -645,7 +700,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public outdentAction(): void {
-    this.performAction('outdent');
+    this.performCommand('outdent');
   }
 
   /**
@@ -653,7 +708,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public indentAction(): void {
-    this.performAction('indent');
+    this.performCommand('indent');
   }
 
   /**
@@ -661,7 +716,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public cutAction(): void {
-    this.performAction('cut');
+    this.performCommand('cut');
   }
 
   /**
@@ -669,7 +724,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public copyAction(): void {
-    this.performAction('copy');
+    this.performCommand('copy');
   }
 
   /**
@@ -677,7 +732,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public pasteAction(): void {
-    this.performAction('paste');
+    this.performCommand('paste');
   }
 
   /**

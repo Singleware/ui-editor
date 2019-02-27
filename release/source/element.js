@@ -148,24 +148,68 @@ let Element = Element_1 = class Element extends Control.Element {
         this.updatePropertyState('invalid', !this.empty && !this.checkValidity());
     }
     /**
-     * Performs the specified command with the given value.
-     * @param commandId Command to be performed
-     * @param value Command value.
+     * Unwraps the specified element.
+     * @param element Element instance.
      */
-    performAction(commandId, value) {
-        this.focus();
-        document.execCommand(commandId, false, value);
+    unwrapElement(element) {
+        const parent = element.parentNode;
+        while (parent && element.firstChild) {
+            parent.insertBefore(element.firstChild, element);
+        }
+        element.remove();
     }
     /**
-     * Performs the specified command with the given value using CSS styles.
-     * @param commandId Command to be performed
-     * @param value Command value.
+     * Cleans the specified element.
+     * @param element Element instance.
+     * @param tag Child tag name to be cleaned.
+     * @param properties CSS properties to be cleaned.
      */
-    performActionWithCSS(commandId, value) {
-        const status = document.queryCommandState('styleWithCSS');
-        document.execCommand('styleWithCSS', false, true);
-        this.performAction(commandId, value);
-        document.execCommand('styleWithCSS', false, status);
+    cleanElement(element, tag, ...properties) {
+        for (const child of element.children) {
+            this.cleanElement(child, tag, ...properties);
+            if (child.tagName.toLowerCase() === tag) {
+                for (const property of properties) {
+                    child.style[property] = '';
+                }
+                const styles = child.getAttribute('style');
+                if (styles === null || styles.length === 0) {
+                    this.unwrapElement(child);
+                }
+            }
+        }
+    }
+    /**
+     * Performs a surrounding in the current selection with the specified tag.
+     * @param tag Tag name.
+     * @returns Returns the affected element instance.
+     * @throws Throws an error when there is no current selection.
+     */
+    performSurrounding(tag) {
+        this.focus();
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) {
+            throw new Error(`There is no current selection.`);
+        }
+        const range = selection.getRangeAt(0);
+        const ancestor = range.commonAncestorContainer.parentElement;
+        if (ancestor.firstChild !== ancestor.lastChild || ancestor.tagName.toLowerCase() !== tag) {
+            const element = JSX.create(tag, {});
+            range.surroundContents(element);
+            return element;
+        }
+        return ancestor;
+    }
+    /**
+     * Performs the specified command with the given value.
+     * @param name Command name.
+     * @param value Command value.
+     * @returns Returns the affected element instance.
+     */
+    performCommand(name, value) {
+        this.focus();
+        const selection = window.getSelection();
+        document.execCommand(name, false, value);
+        return selection.focusNode.parentElement;
     }
     /**
      * Filters the specified list to remove any denied node.
@@ -226,6 +270,7 @@ let Element = Element_1 = class Element extends Control.Element {
      */
     contentChangeHandler() {
         const content = this.getRequiredChildElement(this.contentSlot);
+        content.normalize();
         if (this.cachedHTML !== content.innerHTML) {
             const event = new Event('change', { bubbles: true, cancelable: true });
             if (this.dispatchEvent(event)) {
@@ -360,134 +405,140 @@ let Element = Element_1 = class Element extends Control.Element {
         this.setAttribute('orientation', orientation);
     }
     /**
-     * Formats the specified tag from the selection or insertion point.
-     * @param tag HTML tag.
-     */
-    formatAction(tag) {
-        this.performAction('formatBlock', tag);
-    }
-    /**
      * Formats the specified font name for the selection or at the insertion point.
      * @param name Font name.
      */
     fontNameAction(name) {
-        this.performActionWithCSS('fontName', name);
+        const element = this.performSurrounding('font');
+        this.cleanElement(element, 'font', 'fontFamily');
+        element.style.fontFamily = name;
     }
     /**
      * Formats the specified font size for the selection or at the insertion point.
      * @param size Font size.
      */
     fontSizeAction(size) {
-        this.performActionWithCSS('fontSize', size);
+        const element = this.performSurrounding('font');
+        this.cleanElement(element, 'font', 'fontSize');
+        element.style.fontSize = size;
     }
     /**
      * Formats the specified font color for the selection or at the insertion point.
      * @param color Font color.
      */
     fontColorAction(color) {
-        this.performActionWithCSS('foreColor', color);
+        const element = this.performSurrounding('font');
+        this.cleanElement(element, 'font', 'color');
+        element.style.color = color;
+    }
+    /**
+     * Formats the specified tag from the selection or insertion point.
+     * @param tag HTML tag.
+     */
+    formatAction(tag) {
+        this.performCommand('formatBlock', tag);
     }
     /**
      * Undoes the last executed command.
      */
     undoAction() {
-        this.performAction('undo');
+        this.performCommand('undo');
     }
     /**
      * Redoes the previous undo command.
      */
     redoAction() {
-        this.performAction('redo');
+        this.performCommand('redo');
     }
     /**
      * Toggles bold on/off for the selection or at the insertion point.
      */
     boldAction() {
-        this.performAction('bold');
+        this.performCommand('bold');
     }
     /**
      * Toggles italics on/off for the selection or at the insertion point.
      */
     italicAction() {
-        this.performAction('italic');
+        this.performCommand('italic');
     }
     /**
      * Toggles underline on/off for the selection or at the insertion point.
      */
     underlineAction() {
-        this.performAction('underline');
+        this.performCommand('underline');
     }
     /**
      * Toggles strikeThrough on/off for the selection or at the insertion point.
      */
     strikeThroughAction() {
-        this.performAction('strikeThrough');
+        this.performCommand('strikeThrough');
     }
     /**
      * Creates a bulleted unordered list for the selection or at the insertion point.
      */
     unorderedListAction() {
-        this.performAction('insertUnorderedList');
+        this.performCommand('insertUnorderedList');
     }
     /**
      * Creates a numbered ordered list for the selection or at the insertion point.
      */
     orderedListAction() {
-        this.performAction('insertOrderedList');
+        this.performCommand('insertOrderedList');
     }
     /**
      * Justifies the selection or insertion point to the left.
      */
     alignLeftAction() {
-        this.performAction('justifyLeft');
+        this.performCommand('justifyLeft');
     }
     /**
      * Justifies the selection or insertion point to the center.
      */
     alignCenterAction() {
-        this.performAction('justifyCenter');
+        this.performCommand('justifyCenter');
     }
     /**
      * Justifies the selection or insertion point to the right.
      */
     alignRightAction() {
-        this.performAction('justifyRight');
+        this.performCommand('justifyRight');
     }
     /**
      * Justifies the selection or insertion point.
      */
     alignJustifyAction() {
-        this.performAction('justifyFull');
+        this.performCommand('justifyFull');
     }
     /**
      * Outdents the line containing the selection or insertion point.
      */
     outdentAction() {
-        this.performAction('outdent');
+        this.performCommand('outdent');
     }
     /**
      * Indents the line containing the selection or insertion point.
      */
     indentAction() {
-        this.performAction('indent');
+        this.performCommand('indent');
     }
     /**
      * Removes the current selection and copies it to the clipboard.
      */
     cutAction() {
-        this.performAction('cut');
+        this.performCommand('cut');
     }
     /**
      * Copies the current selection to the clipboard.
      */
     copyAction() {
-        this.performAction('copy');
+        this.performCommand('copy');
     }
     /**
      * Pastes the clipboard contents at the insertion point.
      */
     pasteAction() {
-        this.performAction('paste');
+        this.performCommand('paste');
     }
     /**
      * Gets the active styles from the specified node.
@@ -654,10 +705,16 @@ __decorate([
 ], Element.prototype, "updateValidation", null);
 __decorate([
     Class.Private()
-], Element.prototype, "performAction", null);
+], Element.prototype, "unwrapElement", null);
 __decorate([
     Class.Private()
-], Element.prototype, "performActionWithCSS", null);
+], Element.prototype, "cleanElement", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "performSurrounding", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "performCommand", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "removeDeniedNodes", null);
@@ -705,9 +762,6 @@ __decorate([
 ], Element.prototype, "orientation", null);
 __decorate([
     Class.Public()
-], Element.prototype, "formatAction", null);
-__decorate([
-    Class.Public()
 ], Element.prototype, "fontNameAction", null);
 __decorate([
     Class.Public()
@@ -715,6 +769,9 @@ __decorate([
 __decorate([
     Class.Public()
 ], Element.prototype, "fontColorAction", null);
+__decorate([
+    Class.Public()
+], Element.prototype, "formatAction", null);
 __decorate([
     Class.Public()
 ], Element.prototype, "undoAction", null);
