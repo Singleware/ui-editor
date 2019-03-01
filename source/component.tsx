@@ -29,6 +29,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
       required={this.properties.required}
       readOnly={this.properties.readOnly}
       disabled={this.properties.disabled}
+      preserveSelection={this.properties.preserveSelection}
       paragraphTag={this.properties.paragraphTag}
       deniedTags={this.properties.deniedTags}
       orientation={this.properties.orientation}
@@ -145,6 +146,21 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
+   * Gets the preserve selection state.
+   */
+  @Class.Public()
+  public get preserveSelection(): boolean {
+    return this.skeleton.preserveSelection;
+  }
+
+  /**
+   * Sets the preserve selection state.
+   */
+  public set preserveSelection(status: boolean) {
+    this.skeleton.preserveSelection = status;
+  }
+
+  /**
    * Gets the paragraph tag.
    */
   @Class.Public()
@@ -190,12 +206,70 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Formats the specified tag for the selection or insertion point.
-   * @param tag HTML tag.
+   * Locks the specified element, locked elements can't be affected by user actions in the editor.
+   * @param element Element that will be locked.
+   * @param locker Locker object, must be used to unlock the element.
+   * @throws Throws an error when the element is already locked.
    */
   @Class.Public()
-  public formatAction(tag: string): void {
-    this.skeleton.formatAction(tag);
+  public lockElement(element: HTMLElement, locker: any = null): void {
+    this.skeleton.lockElement(element, locker);
+  }
+
+  /**
+   * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+   * @param element Element that will be unlocked.
+   * @param locker Locked object used to lock the following element.
+   * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+   */
+  @Class.Public()
+  public unlockElement(element: HTMLElement, locker: any = null): void {
+    this.skeleton.unlockElement(element, locker);
+  }
+
+  /**
+   * Gets the active styles from the specified node.
+   * @param node Element node.
+   * @param map Predefined styles map.
+   * @returns Returns the active styles map.
+   */
+  @Class.Public()
+  public getStyles(node: Node, map?: Styles): Styles {
+    return this.skeleton.getStyles(node, map);
+  }
+
+  /**
+   * Gets the styles map from the current focused node.
+   * @returns Returns the styles map.
+   */
+  @Class.Public()
+  public getCurrentStyles(): Styles {
+    return this.skeleton.getCurrentStyles();
+  }
+
+  /**
+   * Move the focus to this element.
+   */
+  @Class.Public()
+  public focus(): void {
+    this.skeleton.focus();
+  }
+
+  /**
+   * Reset the element value to its initial value.
+   */
+  @Class.Public()
+  public reset(): void {
+    this.skeleton.reset();
+  }
+
+  /**
+   * Checks the element validity.
+   * @returns Returns true when the element is valid, false otherwise.
+   */
+  @Class.Public()
+  public checkValidity(): boolean {
+    return this.skeleton.checkValidity();
   }
 
   /**
@@ -223,6 +297,24 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   @Class.Public()
   public fontColorAction(color: string): void {
     this.skeleton.fontColorAction(color);
+  }
+
+  /**
+   * Formats the specified line height for the selection or at the insertion point.
+   * @param height Line height.
+   */
+  @Class.Public()
+  public lineHeightAction(height: string): void {
+    this.skeleton.lineHeightAction(height);
+  }
+
+  /**
+   * Formats the specified tag for the selection or insertion point.
+   * @param tag HTML tag.
+   */
+  @Class.Public()
+  public formatAction(tag: string): void {
+    this.skeleton.formatAction(tag);
   }
 
   /**
@@ -362,47 +454,10 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Gets the active styles from the specified node.
-   * @param node Element node.
-   * @param map Predefined styles map.
-   * @returns Returns the active styles map.
+   * Sets a new zoom into the content element.
    */
   @Class.Public()
-  public getStyles(node: Node, map?: Styles): Styles {
-    return this.skeleton.getStyles(node, map);
-  }
-
-  /**
-   * Gets the styles map from the current focused node.
-   * @returns Returns the styles map.
-   */
-  @Class.Public()
-  public getCurrentStyles(): Styles {
-    return this.skeleton.getCurrentStyles();
-  }
-
-  /**
-   * Move the focus to this element.
-   */
-  @Class.Public()
-  public focus(): void {
-    this.skeleton.focus();
-  }
-
-  /**
-   * Reset the element value to its initial value.
-   */
-  @Class.Public()
-  public reset(): void {
-    this.skeleton.reset();
-  }
-
-  /**
-   * Checks the element validity.
-   * @returns Returns true when the element is valid, false otherwise.
-   */
-  @Class.Public()
-  public checkValidity(): boolean {
-    return this.skeleton.checkValidity();
+  public zoomAction(zoom: number): void {
+    this.skeleton.zoomAction(zoom);
   }
 }

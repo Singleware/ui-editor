@@ -87,4 +87,12 @@ export interface Styles {
    * Font color.
    */
   fontColor: string | undefined;
+  /**
+   * Line height.
+   */
+  lineHeight: string | undefined;
+  /**
+   * Editor zoom.
+   */
+  zoom: number;
 }

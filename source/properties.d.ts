@@ -40,6 +40,10 @@ export interface Properties {
    */
   disabled?: boolean;
   /**
+   * Determines whether the selection should be preserved when the editor content isn't focused.
+   */
+  preserveSelection?: boolean;
+  /**
    * HTML paragraph tag.
    */
   paragraphTag?: string;

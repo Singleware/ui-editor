@@ -61,6 +61,13 @@ export declare class Component<T extends Properties = Properties> extends Contro
     */
     disabled: boolean;
     /**
+     * Gets the preserve selection state.
+     */
+    /**
+    * Sets the preserve selection state.
+    */
+    preserveSelection: boolean;
+    /**
      * Gets the paragraph tag.
      */
     /**
@@ -82,10 +89,44 @@ export declare class Component<T extends Properties = Properties> extends Contro
     */
     orientation: string;
     /**
-     * Formats the specified tag for the selection or insertion point.
-     * @param tag HTML tag.
+     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * @param element Element that will be locked.
+     * @param locker Locker object, must be used to unlock the element.
+     * @throws Throws an error when the element is already locked.
      */
-    formatAction(tag: string): void;
+    lockElement(element: HTMLElement, locker?: any): void;
+    /**
+     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * @param element Element that will be unlocked.
+     * @param locker Locked object used to lock the following element.
+     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     */
+    unlockElement(element: HTMLElement, locker?: any): void;
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Element node.
+     * @param map Predefined styles map.
+     * @returns Returns the active styles map.
+     */
+    getStyles(node: Node, map?: Styles): Styles;
+    /**
+     * Gets the styles map from the current focused node.
+     * @returns Returns the styles map.
+     */
+    getCurrentStyles(): Styles;
+    /**
+     * Move the focus to this element.
+     */
+    focus(): void;
+    /**
+     * Reset the element value to its initial value.
+     */
+    reset(): void;
+    /**
+     * Checks the element validity.
+     * @returns Returns true when the element is valid, false otherwise.
+     */
+    checkValidity(): boolean;
     /**
      * Change the font name for the selection or at the insertion point.
      * @param name Font name.
@@ -101,6 +142,16 @@ export declare class Component<T extends Properties = Properties> extends Contro
      * @param color Font color.
      */
     fontColorAction(color: string): void;
+    /**
+     * Formats the specified line height for the selection or at the insertion point.
+     * @param height Line height.
+     */
+    lineHeightAction(height: string): void;
+    /**
+     * Formats the specified tag for the selection or insertion point.
+     * @param tag HTML tag.
+     */
+    formatAction(tag: string): void;
     /**
      * Undoes the last executed command.
      */
@@ -170,28 +221,7 @@ export declare class Component<T extends Properties = Properties> extends Contro
      */
     pasteAction(): void;
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Sets a new zoom into the content element.
      */
-    getStyles(node: Node, map?: Styles): Styles;
-    /**
-     * Gets the styles map from the current focused node.
-     * @returns Returns the styles map.
-     */
-    getCurrentStyles(): Styles;
-    /**
-     * Move the focus to this element.
-     */
-    focus(): void;
-    /**
-     * Reset the element value to its initial value.
-     */
-    reset(): void;
-    /**
-     * Checks the element validity.
-     * @returns Returns true when the element is valid, false otherwise.
-     */
-    checkValidity(): boolean;
+    zoomAction(zoom: number): void;
 }

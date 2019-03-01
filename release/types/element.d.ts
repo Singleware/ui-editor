@@ -33,6 +33,14 @@ export declare class Element extends Control.Element {
      */
     private deniedTagList;
     /**
+     * Saved selection range.
+     */
+    private selectionRange?;
+    /**
+     * Saved selection element.
+     */
+    private selectionElement?;
+    /**
      * Cached HTML content.
      */
     private cachedHTML;
@@ -40,6 +48,10 @@ export declare class Element extends Control.Element {
      * Content observer.
      */
     private observer;
+    /**
+     * Map of locked nodes.
+     */
+    private lockedMap;
     /**
      * Element styles.
      */
@@ -61,26 +73,70 @@ export declare class Element extends Control.Element {
      */
     private editorStyles;
     /**
-     * Update all validation attributes.
+     * Update all validation attributes based on the current content.
      */
-    private updateValidation;
+    private updateContentValidation;
+    /**
+     * Starts the content observer.
+     */
+    private startContentObserver;
+    /**
+     * Stops the content observer and clear its records.
+     */
+    private stopContentObserver;
     /**
      * Unwraps the specified element.
      * @param element Element instance.
      */
     private unwrapElement;
     /**
-     * Cleans the specified element.
-     * @param element Element instance.
-     * @param tag Child tag name to be cleaned.
-     * @param properties CSS properties to be cleaned.
+     * Saves the current selection range and wraps into a new selection element.
      */
-    private cleanElement;
+    private saveSelection;
+    /**
+     * Unwraps the previous saved selection element.
+     */
+    private unwrapSelection;
+    /**
+     * Clears the previously saved selection.
+     */
+    private clearSelection;
+    /**
+     * Restores the previous saved selection range.
+     */
+    private restoreSelection;
+    /**
+     * Remove any denied node for the specified node list.
+     * @param list List of added nodes or elements.
+     * @returns Returns the number of removed nodes.
+     */
+    private clearDeniedNodes;
+    /**
+     * Restores any locked node form the specified node list.
+     * @param parent Parent node for all nodes in the specified list of removed nodes.
+     * @param next Next sibling node of the specified list of removed nodes.
+     * @param list List of removed nodes or elements.
+     * @returns Returns the number of restored nodes.
+     */
+    private restoreLockedNodes;
+    /**
+     * Saves the current content changes.
+     * @returns Returns true when the content changes was saved, false otherwise.
+     */
+    private saveContentChanges;
+    /**
+     * Remove any element that corresponds to the specified tag name and an empty style attribute.
+     * @param list List of nodes or elements.
+     * @param tag Expected tag name.
+     * @param properties CSS properties to be cleaned.
+     * @returns Returns the number of removed nodes.
+     */
+    private clearElement;
     /**
      * Performs a surrounding in the current selection with the specified tag.
      * @param tag Tag name.
      * @returns Returns the affected element instance.
-     * @throws Throws an error when there is no current selection.
+     * @throws Throws an error when there is no selection.
      */
     private performSurrounding;
     /**
@@ -91,22 +147,14 @@ export declare class Element extends Control.Element {
      */
     private performCommand;
     /**
-     * Filters the specified list to remove any denied node.
-     * @param list List of nodes or elements.
-     * @returns Returns the number of removed nodes.
+     * Gets the higher parent element that is connected to the document.
+     * @param parent First parent element.
+     * @returns Returns the higher parent element that is connected to the document.
      */
-    private removeDeniedNodes;
+    private getConnectedParent;
     /**
-     * Mutation handler.
+     * Content change, event handler.
      * @param records Mutation record list.
-     */
-    private mutationHandler;
-    /**
-     * Content focus handler.
-     */
-    private contentFocusHandler;
-    /**
-     * Content change handler.
      */
     private contentChangeHandler;
     /**
@@ -161,6 +209,13 @@ export declare class Element extends Control.Element {
     */
     disabled: boolean;
     /**
+     * Gets the preserve selection state.
+     */
+    /**
+    * Sets the preserve selection state.
+    */
+    preserveSelection: boolean;
+    /**
      * Gets the paragraph tag.
      */
     /**
@@ -182,6 +237,45 @@ export declare class Element extends Control.Element {
     */
     orientation: string;
     /**
+     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * @param element Element that will be locked.
+     * @param locker Locker object, must be used to unlock the element.
+     * @throws Throws an error when the element is already locked.
+     */
+    lockElement(element: HTMLElement, locker?: any): void;
+    /**
+     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * @param element Element that will be unlocked.
+     * @param locker Locked object used to lock the following element.
+     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     */
+    unlockElement(element: HTMLElement, locker?: any): void;
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Element node.
+     * @param map Predefined styles map.
+     * @returns Returns the active styles map.
+     */
+    getStyles(node: Node, map?: Styles): Styles;
+    /**
+     * Gets the active styles map from the focused node.
+     * @returns Returns the active styles map.
+     */
+    getCurrentStyles(): Styles;
+    /**
+     * Move the focus to this element.
+     */
+    focus(): void;
+    /**
+     * Reset the element value to its initial value.
+     */
+    reset(): void;
+    /**
+     * Checks the element validity.
+     * @returns Returns true when the element is valid, false otherwise.
+     */
+    checkValidity(): boolean;
+    /**
      * Formats the specified font name for the selection or at the insertion point.
      * @param name Font name.
      */
@@ -196,6 +290,11 @@ export declare class Element extends Control.Element {
      * @param color Font color.
      */
     fontColorAction(color: string): void;
+    /**
+     * Formats the specified line height for the selection or at the insertion point.
+     * @param height Line height.
+     */
+    lineHeightAction(height: string): void;
     /**
      * Formats the specified tag from the selection or insertion point.
      * @param tag HTML tag.
@@ -270,28 +369,7 @@ export declare class Element extends Control.Element {
      */
     pasteAction(): void;
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Sets a new zoom into the content element.
      */
-    getStyles(node: Node, map?: Styles): Styles;
-    /**
-     * Gets the active styles map from the focused node.
-     * @returns Returns the active styles map.
-     */
-    getCurrentStyles(): Styles;
-    /**
-     * Move the focus to this element.
-     */
-    focus(): void;
-    /**
-     * Reset the element value to its initial value.
-     */
-    reset(): void;
-    /**
-     * Checks the element validity.
-     * @returns Returns true when the element is valid, false otherwise.
-     */
-    checkValidity(): boolean;
+    zoomAction(zoom: number): void;
 }

@@ -25,7 +25,7 @@ let Component = class Component extends Control.Component {
         /**
          * Element instance.
          */
-        this.skeleton = (JSX.create("swe-editor", { class: this.properties.class, slot: this.properties.slot, name: this.properties.name, value: this.properties.value, defaultValue: this.properties.defaultValue, required: this.properties.required, readOnly: this.properties.readOnly, disabled: this.properties.disabled, paragraphTag: this.properties.paragraphTag, deniedTags: this.properties.deniedTags, orientation: this.properties.orientation, onChange: this.properties.onChange }, this.children));
+        this.skeleton = (JSX.create("swe-editor", { class: this.properties.class, slot: this.properties.slot, name: this.properties.name, value: this.properties.value, defaultValue: this.properties.defaultValue, required: this.properties.required, readOnly: this.properties.readOnly, disabled: this.properties.disabled, preserveSelection: this.properties.preserveSelection, paragraphTag: this.properties.paragraphTag, deniedTags: this.properties.deniedTags, orientation: this.properties.orientation, onChange: this.properties.onChange }, this.children));
     }
     /**
      * Gets the element.
@@ -112,6 +112,18 @@ let Component = class Component extends Control.Component {
         this.skeleton.disabled = state;
     }
     /**
+     * Gets the preserve selection state.
+     */
+    get preserveSelection() {
+        return this.skeleton.preserveSelection;
+    }
+    /**
+     * Sets the preserve selection state.
+     */
+    set preserveSelection(status) {
+        this.skeleton.preserveSelection = status;
+    }
+    /**
      * Gets the paragraph tag.
      */
     get paragraphTag() {
@@ -148,11 +160,57 @@ let Component = class Component extends Control.Component {
         this.skeleton.orientation = orientation;
     }
     /**
-     * Formats the specified tag for the selection or insertion point.
-     * @param tag HTML tag.
+     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * @param element Element that will be locked.
+     * @param locker Locker object, must be used to unlock the element.
+     * @throws Throws an error when the element is already locked.
      */
-    formatAction(tag) {
-        this.skeleton.formatAction(tag);
+    lockElement(element, locker = null) {
+        this.skeleton.lockElement(element, locker);
+    }
+    /**
+     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * @param element Element that will be unlocked.
+     * @param locker Locked object used to lock the following element.
+     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     */
+    unlockElement(element, locker = null) {
+        this.skeleton.unlockElement(element, locker);
+    }
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Element node.
+     * @param map Predefined styles map.
+     * @returns Returns the active styles map.
+     */
+    getStyles(node, map) {
+        return this.skeleton.getStyles(node, map);
+    }
+    /**
+     * Gets the styles map from the current focused node.
+     * @returns Returns the styles map.
+     */
+    getCurrentStyles() {
+        return this.skeleton.getCurrentStyles();
+    }
+    /**
+     * Move the focus to this element.
+     */
+    focus() {
+        this.skeleton.focus();
+    }
+    /**
+     * Reset the element value to its initial value.
+     */
+    reset() {
+        this.skeleton.reset();
+    }
+    /**
+     * Checks the element validity.
+     * @returns Returns true when the element is valid, false otherwise.
+     */
+    checkValidity() {
+        return this.skeleton.checkValidity();
     }
     /**
      * Change the font name for the selection or at the insertion point.
@@ -174,6 +232,20 @@ let Component = class Component extends Control.Component {
      */
     fontColorAction(color) {
         this.skeleton.fontColorAction(color);
+    }
+    /**
+     * Formats the specified line height for the selection or at the insertion point.
+     * @param height Line height.
+     */
+    lineHeightAction(height) {
+        this.skeleton.lineHeightAction(height);
+    }
+    /**
+     * Formats the specified tag for the selection or insertion point.
+     * @param tag HTML tag.
+     */
+    formatAction(tag) {
+        this.skeleton.formatAction(tag);
     }
     /**
      * Undoes the last executed command.
@@ -278,39 +350,10 @@ let Component = class Component extends Control.Component {
         this.skeleton.pasteAction();
     }
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Sets a new zoom into the content element.
      */
-    getStyles(node, map) {
-        return this.skeleton.getStyles(node, map);
-    }
-    /**
-     * Gets the styles map from the current focused node.
-     * @returns Returns the styles map.
-     */
-    getCurrentStyles() {
-        return this.skeleton.getCurrentStyles();
-    }
-    /**
-     * Move the focus to this element.
-     */
-    focus() {
-        this.skeleton.focus();
-    }
-    /**
-     * Reset the element value to its initial value.
-     */
-    reset() {
-        this.skeleton.reset();
-    }
-    /**
-     * Checks the element validity.
-     * @returns Returns true when the element is valid, false otherwise.
-     */
-    checkValidity() {
-        return this.skeleton.checkValidity();
+    zoomAction(zoom) {
+        this.skeleton.zoomAction(zoom);
     }
 };
 __decorate([
@@ -342,6 +385,9 @@ __decorate([
 ], Component.prototype, "disabled", null);
 __decorate([
     Class.Public()
+], Component.prototype, "preserveSelection", null);
+__decorate([
+    Class.Public()
 ], Component.prototype, "paragraphTag", null);
 __decorate([
     Class.Public()
@@ -351,7 +397,25 @@ __decorate([
 ], Component.prototype, "orientation", null);
 __decorate([
     Class.Public()
-], Component.prototype, "formatAction", null);
+], Component.prototype, "lockElement", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "unlockElement", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "getStyles", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "getCurrentStyles", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "focus", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "reset", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "checkValidity", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "fontNameAction", null);
@@ -361,6 +425,12 @@ __decorate([
 __decorate([
     Class.Public()
 ], Component.prototype, "fontColorAction", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "lineHeightAction", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "formatAction", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "undoAction", null);
@@ -414,19 +484,7 @@ __decorate([
 ], Component.prototype, "pasteAction", null);
 __decorate([
     Class.Public()
-], Component.prototype, "getStyles", null);
-__decorate([
-    Class.Public()
-], Component.prototype, "getCurrentStyles", null);
-__decorate([
-    Class.Public()
-], Component.prototype, "focus", null);
-__decorate([
-    Class.Public()
-], Component.prototype, "reset", null);
-__decorate([
-    Class.Public()
-], Component.prototype, "checkValidity", null);
+], Component.prototype, "zoomAction", null);
 Component = __decorate([
     Class.Describe()
 ], Component);
