@@ -142,7 +142,7 @@ let Component = class Component extends Control.Component {
         return this.skeleton.deniedTags;
     }
     /**
-     * Set HTML denied tags.
+     * Sets the denied tag list.
      */
     set deniedTags(tags) {
         this.skeleton.deniedTags = tags;
@@ -160,7 +160,13 @@ let Component = class Component extends Control.Component {
         this.skeleton.orientation = orientation;
     }
     /**
-     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * Gets the current selection range.
+     */
+    get selection() {
+        return this.skeleton.selection;
+    }
+    /**
+     * Locks the specified element, locked elements can't be removed by user actions in the editor.
      * @param element Element that will be locked.
      * @param locker Locker object, must be used to unlock the element.
      * @throws Throws an error when the element is already locked.
@@ -169,7 +175,7 @@ let Component = class Component extends Control.Component {
         this.skeleton.lockElement(element, locker);
     }
     /**
-     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
      * @param element Element that will be unlocked.
      * @param locker Locked object used to lock the following element.
      * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
@@ -178,17 +184,31 @@ let Component = class Component extends Control.Component {
         this.skeleton.unlockElement(element, locker);
     }
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Marks the specified element to be excluded by the value renderer.
+     * @param element Element that will be excluded.
      */
-    getStyles(node, map) {
-        return this.skeleton.getStyles(node, map);
+    excludeElement(element) {
+        this.skeleton.excludeElement(element);
     }
     /**
-     * Gets the styles map from the current focused node.
-     * @returns Returns the styles map.
+     * Marks the specified element that was previously excluded to be included by the value renderer.
+     * @param element Element that will be included.
+     */
+    includeElement(element) {
+        this.skeleton.includeElement(element);
+    }
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Node instance.
+     * @param styles Initial styles state.
+     * @returns Returns the initial styles state with changes.
+     */
+    getStyles(node, style) {
+        return this.skeleton.getStyles(node, style);
+    }
+    /**
+     * Gets the active styles from the focused node.
+     * @returns Returns the active styles.
      */
     getCurrentStyles() {
         return this.skeleton.getCurrentStyles();
@@ -397,10 +417,19 @@ __decorate([
 ], Component.prototype, "orientation", null);
 __decorate([
     Class.Public()
+], Component.prototype, "selection", null);
+__decorate([
+    Class.Public()
 ], Component.prototype, "lockElement", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "unlockElement", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "excludeElement", null);
+__decorate([
+    Class.Public()
+], Component.prototype, "includeElement", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "getStyles", null);

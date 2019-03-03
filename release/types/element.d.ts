@@ -5,34 +5,6 @@ import { Styles } from './styles';
  */
 export declare class Element extends Control.Element {
     /**
-     * Default styles.
-     */
-    private static defaultStyles;
-    /**
-     * Map of style keys by element name.
-     */
-    private static stylesByElementName;
-    /**
-     * Map of styles by CSS declaration.
-     */
-    private static stylesByCSSDeclaration;
-    /**
-     * Collect all styles by its respective CSS declaration.
-     * @param styles Styles map.
-     * @param declarations CSS declarations.
-     */
-    private static collectStylesByCSS;
-    /**
-     * Collect all styles by its respective element name.
-     * @param styles Styles map.
-     * @param element HTML element.
-     */
-    private static collectStylesByElement;
-    /**
-     * List of denied tags in the editor.
-     */
-    private deniedTagList;
-    /**
      * Saved selection range.
      */
     private selectionRange?;
@@ -45,6 +17,10 @@ export declare class Element extends Control.Element {
      */
     private cachedHTML;
     /**
+     * List of denied tags in the editor.
+     */
+    private deniedTagList;
+    /**
      * Content observer.
      */
     private observer;
@@ -52,6 +28,10 @@ export declare class Element extends Control.Element {
      * Map of locked nodes.
      */
     private lockedMap;
+    /**
+     * Map of ignored nodes.
+     */
+    private excludedSet;
     /**
      * Element styles.
      */
@@ -75,7 +55,7 @@ export declare class Element extends Control.Element {
     /**
      * Update all validation attributes based on the current content.
      */
-    private updateContentValidation;
+    private updateValidation;
     /**
      * Starts the content observer.
      */
@@ -84,11 +64,6 @@ export declare class Element extends Control.Element {
      * Stops the content observer and clear its records.
      */
     private stopContentObserver;
-    /**
-     * Unwraps the specified element.
-     * @param element Element instance.
-     */
-    private unwrapElement;
     /**
      * Saves the current selection range and wraps into a new selection element.
      */
@@ -105,12 +80,13 @@ export declare class Element extends Control.Element {
      * Restores the previous saved selection range.
      */
     private restoreSelection;
+    private restoreFocus;
     /**
-     * Remove any denied node for the specified node list.
-     * @param list List of added nodes or elements.
-     * @returns Returns the number of removed nodes.
+     * Restores the first paragraph in the content element.
+     * @param focused Determines whether the focus should be moved to the restored paragraph or not.
+     * @returns Returns true when the paragraph was restored, false otherwise.
      */
-    private clearDeniedNodes;
+    private restoreParagraph;
     /**
      * Restores any locked node form the specified node list.
      * @param parent Parent node for all nodes in the specified list of removed nodes.
@@ -120,32 +96,24 @@ export declare class Element extends Control.Element {
      */
     private restoreLockedNodes;
     /**
-     * Saves the current content changes.
-     * @returns Returns true when the content changes was saved, false otherwise.
+     * Remove any denied node for the specified node list.
+     * @param list List of added nodes or elements.
+     * @returns Returns the number of removed nodes.
      */
-    private saveContentChanges;
+    private removeDeniedNodes;
     /**
-     * Remove any element that corresponds to the specified tag name and an empty style attribute.
+     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS, it will be removed.
      * @param list List of nodes or elements.
      * @param tag Expected tag name.
      * @param properties CSS properties to be cleaned.
      * @returns Returns the number of removed nodes.
      */
-    private clearElement;
+    private clearNodes;
     /**
-     * Performs a surrounding in the current selection with the specified tag.
-     * @param tag Tag name.
-     * @returns Returns the affected element instance.
-     * @throws Throws an error when there is no selection.
+     * Saves the current content changes.
+     * @returns Returns true when the content changes was saved, false otherwise.
      */
-    private performSurrounding;
-    /**
-     * Performs the specified command with the given value.
-     * @param name Command name.
-     * @param value Command value.
-     * @returns Returns the affected element instance.
-     */
-    private performCommand;
+    private saveContentChanges;
     /**
      * Gets the higher parent element that is connected to the document.
      * @param parent First parent element.
@@ -161,6 +129,19 @@ export declare class Element extends Control.Element {
      * Updates the current selection into the new input slot element.
      */
     private contentSlotChangeHandler;
+    /**
+     * Performs a surrounding in the current selection with the specified tag.
+     * @param tag Tag name.
+     * @returns Returns the affected element instance.
+     */
+    private performSurrounding;
+    /**
+     * Performs the specified command with the given value.
+     * @param name Command name.
+     * @param value Command value.
+     * @returns Returns the affected element instance.
+     */
+    private performCommand;
     /**
      * Default constructor.
      */
@@ -226,7 +207,7 @@ export declare class Element extends Control.Element {
      * Gets the denied tag list.
      */
     /**
-    * Set HTML denied tags.
+    * Sets the denied tag list.
     */
     deniedTags: string[];
     /**
@@ -237,29 +218,43 @@ export declare class Element extends Control.Element {
     */
     orientation: string;
     /**
-     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * Gets the current selection range.
+     */
+    readonly selection: Range | undefined;
+    /**
+     * Locks the specified element, locked elements can't be removed by user actions in the editor.
      * @param element Element that will be locked.
      * @param locker Locker object, must be used to unlock the element.
      * @throws Throws an error when the element is already locked.
      */
     lockElement(element: HTMLElement, locker?: any): void;
     /**
-     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
      * @param element Element that will be unlocked.
      * @param locker Locked object used to lock the following element.
      * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
      */
     unlockElement(element: HTMLElement, locker?: any): void;
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Marks the specified element to be excluded by the value renderer.
+     * @param element Element that will be excluded.
      */
-    getStyles(node: Node, map?: Styles): Styles;
+    excludeElement(element: HTMLElement): void;
     /**
-     * Gets the active styles map from the focused node.
-     * @returns Returns the active styles map.
+     * Marks the specified element (that was excluded before) to be included by the value renderer.
+     * @param element Element that will be included.
+     */
+    includeElement(element: HTMLElement): void;
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Node instance.
+     * @param styles Initial styles state.
+     * @returns Returns the initial styles state with changes.
+     */
+    getStyles(node: Node, styles?: Styles): Styles;
+    /**
+     * Gets the active styles from the focused node.
+     * @returns Returns the active styles.
      */
     getCurrentStyles(): Styles;
     /**

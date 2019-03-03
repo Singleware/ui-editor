@@ -6,5 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var component_1 = require("./component");
 exports.Component = component_1.Component;
+var settings_1 = require("./settings");
+exports.Settings = settings_1.Settings;
 var element_1 = require("./element");
 exports.Element = element_1.Element;

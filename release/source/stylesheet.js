@@ -34,7 +34,7 @@ let Stylesheet = class Stylesheet extends OSS.Stylesheet {
          */
         this.vertical = this.select(':host>.editor', ':host([orientation="column"])>.editor');
         /**
-         * Editor toolbar styles.
+         * Toolbar styles.
          */
         this.toolbar = this.select(':host>.editor>.toolbar');
         /**
@@ -46,13 +46,17 @@ let Stylesheet = class Stylesheet extends OSS.Stylesheet {
          */
         this.verticalToolbar = this.select(':host([orientation="row"])>.editor>.toolbar');
         /**
-         * Editor content styles.
+         * Content styles.
          */
         this.content = this.select(':host>.editor>.content', ':host>.editor>.content::slotted(*)');
         /**
-         * Editor slotted content styles.
+         * Slotted content styles.
          */
         this.slottedContent = this.select(':host>.editor>.content::slotted(*)');
+        /**
+         * Content selection.
+         */
+        this.selection = this.select('swe-editor>*[slot="content"] mark[data-swe-editor-selection]');
         this.element.display = 'flex';
         this.element.height = 'inherit';
         this.element.width = 'inherit';
@@ -70,6 +74,8 @@ let Stylesheet = class Stylesheet extends OSS.Stylesheet {
         this.slottedContent.display = 'block';
         this.slottedContent.position = 'relative';
         this.slottedContent.overflow = 'auto';
+        this.selection.display = 'inline';
+        this.selection.backgroundColor = 'rgb(236,240,241)';
     }
 };
 __decorate([
@@ -96,6 +102,9 @@ __decorate([
 __decorate([
     Class.Private()
 ], Stylesheet.prototype, "slottedContent", void 0);
+__decorate([
+    Class.Private()
+], Stylesheet.prototype, "selection", void 0);
 Stylesheet = __decorate([
     Class.Describe()
 ], Stylesheet);

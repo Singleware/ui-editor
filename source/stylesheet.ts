@@ -29,7 +29,7 @@ export class Stylesheet extends OSS.Stylesheet {
   private vertical = this.select(':host>.editor', ':host([orientation="column"])>.editor');
 
   /**
-   * Editor toolbar styles.
+   * Toolbar styles.
    */
   @Class.Private()
   private toolbar = this.select(':host>.editor>.toolbar');
@@ -47,16 +47,22 @@ export class Stylesheet extends OSS.Stylesheet {
   private verticalToolbar = this.select(':host([orientation="row"])>.editor>.toolbar');
 
   /**
-   * Editor content styles.
+   * Content styles.
    */
   @Class.Private()
   private content = this.select(':host>.editor>.content', ':host>.editor>.content::slotted(*)');
 
   /**
-   * Editor slotted content styles.
+   * Slotted content styles.
    */
   @Class.Private()
   private slottedContent = this.select(':host>.editor>.content::slotted(*)');
+
+  /**
+   * Content selection.
+   */
+  @Class.Private()
+  private selection = this.select('swe-editor>*[slot="content"] mark[data-swe-editor-selection]');
 
   /**
    * Default constructor.
@@ -80,5 +86,7 @@ export class Stylesheet extends OSS.Stylesheet {
     this.slottedContent.display = 'block';
     this.slottedContent.position = 'relative';
     this.slottedContent.overflow = 'auto';
+    this.selection.display = 'inline';
+    this.selection.backgroundColor = 'rgb(236,240,241)';
   }
 }

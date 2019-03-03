@@ -16,7 +16,7 @@ export declare class Stylesheet extends OSS.Stylesheet {
      */
     private vertical;
     /**
-     * Editor toolbar styles.
+     * Toolbar styles.
      */
     private toolbar;
     /**
@@ -28,13 +28,17 @@ export declare class Stylesheet extends OSS.Stylesheet {
      */
     private verticalToolbar;
     /**
-     * Editor content styles.
+     * Content styles.
      */
     private content;
     /**
-     * Editor slotted content styles.
+     * Slotted content styles.
      */
     private slottedContent;
+    /**
+     * Content selection.
+     */
+    private selection;
     /**
      * Default constructor.
      */

@@ -184,7 +184,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Set HTML denied tags.
+   * Sets the denied tag list.
    */
   public set deniedTags(tags: string[]) {
     this.skeleton.deniedTags = tags;
@@ -206,7 +206,15 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Locks the specified element, locked elements can't be affected by user actions in the editor.
+   * Gets the current selection range.
+   */
+  @Class.Public()
+  public get selection(): Range | undefined {
+    return this.skeleton.selection;
+  }
+
+  /**
+   * Locks the specified element, locked elements can't be removed by user actions in the editor.
    * @param element Element that will be locked.
    * @param locker Locker object, must be used to unlock the element.
    * @throws Throws an error when the element is already locked.
@@ -217,7 +225,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+   * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
    * @param element Element that will be unlocked.
    * @param locker Locked object used to lock the following element.
    * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
@@ -228,19 +236,37 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Gets the active styles from the specified node.
-   * @param node Element node.
-   * @param map Predefined styles map.
-   * @returns Returns the active styles map.
+   * Marks the specified element to be excluded by the value renderer.
+   * @param element Element that will be excluded.
    */
   @Class.Public()
-  public getStyles(node: Node, map?: Styles): Styles {
-    return this.skeleton.getStyles(node, map);
+  public excludeElement(element: HTMLElement): void {
+    this.skeleton.excludeElement(element);
   }
 
   /**
-   * Gets the styles map from the current focused node.
-   * @returns Returns the styles map.
+   * Marks the specified element that was previously excluded to be included by the value renderer.
+   * @param element Element that will be included.
+   */
+  @Class.Public()
+  public includeElement(element: HTMLElement): void {
+    this.skeleton.includeElement(element);
+  }
+
+  /**
+   * Gets the active styles from the specified node.
+   * @param node Node instance.
+   * @param styles Initial styles state.
+   * @returns Returns the initial styles state with changes.
+   */
+  @Class.Public()
+  public getStyles(node: Node, style?: Styles): Styles {
+    return this.skeleton.getStyles(node, style);
+  }
+
+  /**
+   * Gets the active styles from the focused node.
+   * @returns Returns the active styles.
    */
   @Class.Public()
   public getCurrentStyles(): Styles {

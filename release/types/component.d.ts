@@ -78,7 +78,7 @@ export declare class Component<T extends Properties = Properties> extends Contro
      * Gets the denied tag list.
      */
     /**
-    * Set HTML denied tags.
+    * Sets the denied tag list.
     */
     deniedTags: string[];
     /**
@@ -89,29 +89,43 @@ export declare class Component<T extends Properties = Properties> extends Contro
     */
     orientation: string;
     /**
-     * Locks the specified element, locked elements can't be affected by user actions in the editor.
+     * Gets the current selection range.
+     */
+    readonly selection: Range | undefined;
+    /**
+     * Locks the specified element, locked elements can't be removed by user actions in the editor.
      * @param element Element that will be locked.
      * @param locker Locker object, must be used to unlock the element.
      * @throws Throws an error when the element is already locked.
      */
     lockElement(element: HTMLElement, locker?: any): void;
     /**
-     * Unlocks the specified element, unlocked elements can be affected by user actions in the editor.
+     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
      * @param element Element that will be unlocked.
      * @param locker Locked object used to lock the following element.
      * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
      */
     unlockElement(element: HTMLElement, locker?: any): void;
     /**
-     * Gets the active styles from the specified node.
-     * @param node Element node.
-     * @param map Predefined styles map.
-     * @returns Returns the active styles map.
+     * Marks the specified element to be excluded by the value renderer.
+     * @param element Element that will be excluded.
      */
-    getStyles(node: Node, map?: Styles): Styles;
+    excludeElement(element: HTMLElement): void;
     /**
-     * Gets the styles map from the current focused node.
-     * @returns Returns the styles map.
+     * Marks the specified element that was previously excluded to be included by the value renderer.
+     * @param element Element that will be included.
+     */
+    includeElement(element: HTMLElement): void;
+    /**
+     * Gets the active styles from the specified node.
+     * @param node Node instance.
+     * @param styles Initial styles state.
+     * @returns Returns the initial styles state with changes.
+     */
+    getStyles(node: Node, style?: Styles): Styles;
+    /**
+     * Gets the active styles from the focused node.
+     * @returns Returns the active styles.
      */
     getCurrentStyles(): Styles;
     /**
