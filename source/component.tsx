@@ -30,7 +30,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
       readOnly={this.properties.readOnly}
       disabled={this.properties.disabled}
       preserveSelection={this.properties.preserveSelection}
-      paragraphTag={this.properties.paragraphTag}
+      paragraphType={this.properties.paragraphType}
       deniedTags={this.properties.deniedTags}
       orientation={this.properties.orientation}
       onChange={this.properties.onChange}
@@ -164,15 +164,15 @@ export class Component<T extends Properties = Properties> extends Control.Compon
    * Gets the paragraph tag.
    */
   @Class.Public()
-  public get paragraphTag(): string {
-    return this.skeleton.paragraphTag;
+  public get paragraphType(): string {
+    return this.skeleton.paragraphType;
   }
 
   /**
    * Sets the paragraph tag.
    */
-  public set paragraphTag(tag: string) {
-    this.skeleton.paragraphTag = tag;
+  public set paragraphType(tag: string) {
+    this.skeleton.paragraphType = tag;
   }
 
   /**
@@ -206,71 +206,65 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Gets the current selection range.
+   * Gets the selected range.
    */
   @Class.Public()
-  public get selection(): Range | undefined {
-    return this.skeleton.selection;
+  public get selectedRange(): Range | undefined {
+    return this.skeleton.selectedRange;
   }
 
   /**
-   * Locks the specified element, locked elements can't be removed by user actions in the editor.
-   * @param element Element that will be locked.
-   * @param locker Locker object, must be used to unlock the element.
-   * @throws Throws an error when the element is already locked.
+   * Gets the selected text.
    */
   @Class.Public()
-  public lockElement(element: HTMLElement, locker: any = null): void {
-    this.skeleton.lockElement(element, locker);
+  public get selectedText(): string | undefined {
+    return this.selectedText;
   }
 
   /**
-   * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
-   * @param element Element that will be unlocked.
-   * @param locker Locked object used to lock the following element.
-   * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+   * Gets the selected HTML.
    */
   @Class.Public()
-  public unlockElement(element: HTMLElement, locker: any = null): void {
-    this.skeleton.unlockElement(element, locker);
+  public get selectedHTML(): string | undefined {
+    return this.skeleton.selectedHTML;
   }
 
   /**
-   * Marks the specified element to be excluded by the value renderer.
-   * @param element Element that will be excluded.
+   * Gets the selected styles.
    */
   @Class.Public()
-  public excludeElement(element: HTMLElement): void {
-    this.skeleton.excludeElement(element);
+  public get selectedStyles(): Styles {
+    return this.selectedStyles;
   }
 
   /**
-   * Marks the specified element that was previously excluded to be included by the value renderer.
-   * @param element Element that will be included.
+   * Sets the removal state for the specified element.
+   * @param element Element instance.
+   * @param state Determines whether the element can be removed by the user or not.
+   * @param locker Locker object, should be used to unlock the element.
+   * @throws Throws an error when the specified locker for the element is invalid.
    */
   @Class.Public()
-  public includeElement(element: HTMLElement): void {
-    this.skeleton.includeElement(element);
+  public setRemovalState(element: HTMLElement, state: boolean, locker: any = null): void {
+    this.skeleton.setRemovalState(element, state, locker);
   }
 
   /**
-   * Gets the active styles from the specified node.
-   * @param node Node instance.
-   * @param styles Initial styles state.
-   * @returns Returns the initial styles state with changes.
+   * Sets the rendering state of the specified element.
+   * @param element Element instance.
+   * @param state Determines whether the element should be ignored by the renderer or not.
    */
   @Class.Public()
-  public getStyles(node: Node, style?: Styles): Styles {
-    return this.skeleton.getStyles(node, style);
+  public setRenderingState(element: HTMLElement, state: boolean): void {
+    this.skeleton.setRenderingState(element, state);
   }
 
   /**
-   * Gets the active styles from the focused node.
-   * @returns Returns the active styles.
+   * Clears the current selection.
    */
   @Class.Public()
-  public getCurrentStyles(): Styles {
-    return this.skeleton.getCurrentStyles();
+  public clearSelection(): void {
+    this.skeleton.clearSelection();
   }
 
   /**
@@ -326,7 +320,7 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Formats the specified line height for the selection or at the insertion point.
+   * Change line height for the selection or at the insertion point.
    * @param height Line height.
    */
   @Class.Public()

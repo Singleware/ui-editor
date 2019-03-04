@@ -17,6 +17,56 @@ const JSX = require("@singleware/jsx");
  */
 let Helper = class Helper extends Class.Null {
     /**
+     * Gets the representative string of the specified attribute list.
+     * @param attributes List of attributes.
+     * @returns Returns the representative string of the specified attribute list.
+     */
+    static buildHTMLAttributes(attributes) {
+        const list = [];
+        for (let i = 0; i < attributes.length; ++i) {
+            const attribute = attributes.item(i);
+            if (attribute.value !== null) {
+                list.push(`${attribute.name}="${JSX.escape(attribute.value)}"`);
+            }
+            else {
+                list.push(`${attribute.value}`);
+            }
+        }
+        return list.join(' ');
+    }
+    /**
+     * Gets the representative string of the specified node list.
+     * @param nodes List of nodes.
+     * @returns Returns the representative string of the specified node list.
+     */
+    static buildHTMLNodes(nodes, ignored) {
+        const list = [];
+        for (const node of nodes) {
+            if (node instanceof HTMLElement) {
+                const children = this.buildHTMLNodes(node.childNodes, ignored);
+                if (ignored.has(node)) {
+                    if (children.length > 0) {
+                        list.push(children);
+                    }
+                }
+                else {
+                    const tagName = node.tagName.toLowerCase();
+                    const attributes = this.buildHTMLAttributes(node.attributes);
+                    if (children.length > 0) {
+                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
+                    }
+                    else {
+                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
+                    }
+                }
+            }
+            else {
+                list.push(node.textContent || '');
+            }
+        }
+        return list.join('');
+    }
+    /**
      * Collect all styles by its respective CSS declaration form the specified CSS declarations.
      * @param styles Styles map.
      * @param declarations CSS declarations.
@@ -57,56 +107,6 @@ let Helper = class Helper extends Class.Null {
                 }
             }
         }
-    }
-    /**
-     * Gets the representative string of the specified attribute list.
-     * @param attributes List of attributes.
-     * @returns Returns the representative string of the specified attribute list.
-     */
-    static buildAttributes(attributes) {
-        const list = [];
-        for (let i = 0; i < attributes.length; ++i) {
-            const attribute = attributes.item(i);
-            if (attribute.value !== null) {
-                list.push(`${attribute.name}="${JSX.escape(attribute.value)}"`);
-            }
-            else {
-                list.push(`${attribute.value}`);
-            }
-        }
-        return list.join(' ');
-    }
-    /**
-     * Gets the representative string of the specified node list.
-     * @param nodes List of nodes.
-     * @returns Returns the representative string of the specified node list.
-     */
-    static buildElement(nodes, ignored) {
-        const list = [];
-        for (const node of nodes) {
-            if (node instanceof HTMLElement) {
-                const children = this.buildElement(node.childNodes, ignored);
-                if (ignored.has(node)) {
-                    if (children.length > 0) {
-                        list.push(children);
-                    }
-                }
-                else {
-                    const tagName = node.tagName.toLowerCase();
-                    const attributes = this.buildAttributes(node.attributes);
-                    if (children.length > 0) {
-                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
-                    }
-                    else {
-                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
-                    }
-                }
-            }
-            else {
-                list.push(node.textContent || '');
-            }
-        }
-        return list.join('');
     }
 };
 /**
@@ -250,17 +250,17 @@ __decorate([
     Class.Private()
 ], Helper, "stylesByCSSDeclaration", void 0);
 __decorate([
+    Class.Private()
+], Helper, "buildHTMLAttributes", null);
+__decorate([
+    Class.Public()
+], Helper, "buildHTMLNodes", null);
+__decorate([
     Class.Public()
 ], Helper, "collectStylesByCSS", null);
 __decorate([
     Class.Public()
 ], Helper, "collectStylesByElement", null);
-__decorate([
-    Class.Private()
-], Helper, "buildAttributes", null);
-__decorate([
-    Class.Public()
-], Helper, "buildElement", null);
 Helper = __decorate([
     Class.Describe()
 ], Helper);

@@ -44,9 +44,9 @@ export interface Properties {
    */
   preserveSelection?: boolean;
   /**
-   * HTML paragraph tag.
+   * HTML paragraph type.
    */
-  paragraphTag?: string;
+  paragraphType?: string;
   /**
    * HTML denied tags.
    */

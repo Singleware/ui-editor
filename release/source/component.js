@@ -25,7 +25,7 @@ let Component = class Component extends Control.Component {
         /**
          * Element instance.
          */
-        this.skeleton = (JSX.create("swe-editor", { class: this.properties.class, slot: this.properties.slot, name: this.properties.name, value: this.properties.value, defaultValue: this.properties.defaultValue, required: this.properties.required, readOnly: this.properties.readOnly, disabled: this.properties.disabled, preserveSelection: this.properties.preserveSelection, paragraphTag: this.properties.paragraphTag, deniedTags: this.properties.deniedTags, orientation: this.properties.orientation, onChange: this.properties.onChange }, this.children));
+        this.skeleton = (JSX.create("swe-editor", { class: this.properties.class, slot: this.properties.slot, name: this.properties.name, value: this.properties.value, defaultValue: this.properties.defaultValue, required: this.properties.required, readOnly: this.properties.readOnly, disabled: this.properties.disabled, preserveSelection: this.properties.preserveSelection, paragraphType: this.properties.paragraphType, deniedTags: this.properties.deniedTags, orientation: this.properties.orientation, onChange: this.properties.onChange }, this.children));
     }
     /**
      * Gets the element.
@@ -126,14 +126,14 @@ let Component = class Component extends Control.Component {
     /**
      * Gets the paragraph tag.
      */
-    get paragraphTag() {
-        return this.skeleton.paragraphTag;
+    get paragraphType() {
+        return this.skeleton.paragraphType;
     }
     /**
      * Sets the paragraph tag.
      */
-    set paragraphTag(tag) {
-        this.skeleton.paragraphTag = tag;
+    set paragraphType(tag) {
+        this.skeleton.paragraphType = tag;
     }
     /**
      * Gets the denied tag list.
@@ -160,58 +160,52 @@ let Component = class Component extends Control.Component {
         this.skeleton.orientation = orientation;
     }
     /**
-     * Gets the current selection range.
+     * Gets the selected range.
      */
-    get selection() {
-        return this.skeleton.selection;
+    get selectedRange() {
+        return this.skeleton.selectedRange;
     }
     /**
-     * Locks the specified element, locked elements can't be removed by user actions in the editor.
-     * @param element Element that will be locked.
-     * @param locker Locker object, must be used to unlock the element.
-     * @throws Throws an error when the element is already locked.
+     * Gets the selected text.
      */
-    lockElement(element, locker = null) {
-        this.skeleton.lockElement(element, locker);
+    get selectedText() {
+        return this.selectedText;
     }
     /**
-     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
-     * @param element Element that will be unlocked.
-     * @param locker Locked object used to lock the following element.
-     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     * Gets the selected HTML.
      */
-    unlockElement(element, locker = null) {
-        this.skeleton.unlockElement(element, locker);
+    get selectedHTML() {
+        return this.skeleton.selectedHTML;
     }
     /**
-     * Marks the specified element to be excluded by the value renderer.
-     * @param element Element that will be excluded.
+     * Gets the selected styles.
      */
-    excludeElement(element) {
-        this.skeleton.excludeElement(element);
+    get selectedStyles() {
+        return this.selectedStyles;
     }
     /**
-     * Marks the specified element that was previously excluded to be included by the value renderer.
-     * @param element Element that will be included.
+     * Sets the removal state for the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element can be removed by the user or not.
+     * @param locker Locker object, should be used to unlock the element.
+     * @throws Throws an error when the specified locker for the element is invalid.
      */
-    includeElement(element) {
-        this.skeleton.includeElement(element);
+    setRemovalState(element, state, locker = null) {
+        this.skeleton.setRemovalState(element, state, locker);
     }
     /**
-     * Gets the active styles from the specified node.
-     * @param node Node instance.
-     * @param styles Initial styles state.
-     * @returns Returns the initial styles state with changes.
+     * Sets the rendering state of the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element should be ignored by the renderer or not.
      */
-    getStyles(node, style) {
-        return this.skeleton.getStyles(node, style);
+    setRenderingState(element, state) {
+        this.skeleton.setRenderingState(element, state);
     }
     /**
-     * Gets the active styles from the focused node.
-     * @returns Returns the active styles.
+     * Clears the current selection.
      */
-    getCurrentStyles() {
-        return this.skeleton.getCurrentStyles();
+    clearSelection() {
+        this.skeleton.clearSelection();
     }
     /**
      * Move the focus to this element.
@@ -254,7 +248,7 @@ let Component = class Component extends Control.Component {
         this.skeleton.fontColorAction(color);
     }
     /**
-     * Formats the specified line height for the selection or at the insertion point.
+     * Change line height for the selection or at the insertion point.
      * @param height Line height.
      */
     lineHeightAction(height) {
@@ -408,7 +402,7 @@ __decorate([
 ], Component.prototype, "preserveSelection", null);
 __decorate([
     Class.Public()
-], Component.prototype, "paragraphTag", null);
+], Component.prototype, "paragraphType", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "deniedTags", null);
@@ -417,25 +411,25 @@ __decorate([
 ], Component.prototype, "orientation", null);
 __decorate([
     Class.Public()
-], Component.prototype, "selection", null);
+], Component.prototype, "selectedRange", null);
 __decorate([
     Class.Public()
-], Component.prototype, "lockElement", null);
+], Component.prototype, "selectedText", null);
 __decorate([
     Class.Public()
-], Component.prototype, "unlockElement", null);
+], Component.prototype, "selectedHTML", null);
 __decorate([
     Class.Public()
-], Component.prototype, "excludeElement", null);
+], Component.prototype, "selectedStyles", null);
 __decorate([
     Class.Public()
-], Component.prototype, "includeElement", null);
+], Component.prototype, "setRemovalState", null);
 __decorate([
     Class.Public()
-], Component.prototype, "getStyles", null);
+], Component.prototype, "setRenderingState", null);
 __decorate([
     Class.Public()
-], Component.prototype, "getCurrentStyles", null);
+], Component.prototype, "clearSelection", null);
 __decorate([
     Class.Public()
 ], Component.prototype, "focus", null);

@@ -5,19 +5,19 @@ import { Styles } from './styles';
  */
 export declare class Element extends Control.Element {
     /**
-     * Saved selection range.
+     * Current selection range.
      */
-    private selectionRange?;
+    private currentRange?;
     /**
-     * Saved selection element.
+     * Current selection mark.
      */
-    private selectionElement?;
+    private currentMark?;
     /**
-     * Cached HTML content.
+     * Current HTML content.
      */
-    private cachedHTML;
+    private currentHTML;
     /**
-     * List of denied tags in the editor.
+     * List of denied tags.
      */
     private deniedTagList;
     /**
@@ -25,13 +25,13 @@ export declare class Element extends Control.Element {
      */
     private observer;
     /**
-     * Map of locked nodes.
+     * Map of unremovable nodes.
      */
-    private lockedMap;
+    private unremovableMap;
     /**
-     * Map of ignored nodes.
+     * Set of ignored nodes.
      */
-    private excludedSet;
+    private ignoredSet;
     /**
      * Element styles.
      */
@@ -65,21 +65,33 @@ export declare class Element extends Control.Element {
      */
     private stopContentObserver;
     /**
-     * Saves the current selection range and wraps into a new selection element.
+     * Preserves the current selection elements wrapping it into a new mark element.
      */
-    private saveSelection;
+    private wrapSelectionRange;
     /**
-     * Unwraps the previous saved selection element.
+     * Restores the previously preserved selection elements unwrapping the current mark element.
      */
-    private unwrapSelection;
+    private unwrapSelectionRange;
     /**
-     * Clears the previously saved selection.
+     * Saves the current selection range.
      */
-    private clearSelection;
+    private saveSelectionRange;
     /**
-     * Restores the previous saved selection range.
+     * Restores the previously saved selection range.
+     */
+    private restoreSelectionRange;
+    /**
+     * Removes the current saved selection range.
+     */
+    private removeSelectionRange;
+    /**
+     * Restores the previously saved selection range and unwraps the current mark element.
      */
     private restoreSelection;
+    /**
+     * Restores the current focus in the specified element.
+     * @param element Element instance.
+     */
     private restoreFocus;
     /**
      * Restores the first paragraph in the content element.
@@ -113,7 +125,7 @@ export declare class Element extends Control.Element {
      * Saves the current content changes.
      * @returns Returns true when the content changes was saved, false otherwise.
      */
-    private saveContentChanges;
+    private saveChanges;
     /**
      * Gets the higher parent element that is connected to the document.
      * @param parent First parent element.
@@ -197,12 +209,12 @@ export declare class Element extends Control.Element {
     */
     preserveSelection: boolean;
     /**
-     * Gets the paragraph tag.
+     * Gets the paragraph type.
      */
     /**
-    * Sets the paragraph tag.
+    * Sets the paragraph type.
     */
-    paragraphTag: string;
+    paragraphType: string;
     /**
      * Gets the denied tag list.
      */
@@ -218,45 +230,39 @@ export declare class Element extends Control.Element {
     */
     orientation: string;
     /**
-     * Gets the current selection range.
+     * Gets the selected range.
      */
-    readonly selection: Range | undefined;
+    readonly selectedRange: Range | undefined;
     /**
-     * Locks the specified element, locked elements can't be removed by user actions in the editor.
-     * @param element Element that will be locked.
-     * @param locker Locker object, must be used to unlock the element.
-     * @throws Throws an error when the element is already locked.
+     * Gets the selected text.
      */
-    lockElement(element: HTMLElement, locker?: any): void;
+    readonly selectedText: string | undefined;
     /**
-     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
-     * @param element Element that will be unlocked.
-     * @param locker Locked object used to lock the following element.
-     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     * Gets the selected HTML.
      */
-    unlockElement(element: HTMLElement, locker?: any): void;
+    readonly selectedHTML: string | undefined;
     /**
-     * Marks the specified element to be excluded by the value renderer.
-     * @param element Element that will be excluded.
+     * Gets the selected styles.
      */
-    excludeElement(element: HTMLElement): void;
+    readonly selectedStyles: Styles;
     /**
-     * Marks the specified element (that was excluded before) to be included by the value renderer.
-     * @param element Element that will be included.
+     * Sets the removal state for the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element can be removed by the user or not.
+     * @param locker Locker object, should be used to unlock the element.
+     * @throws Throws an error when the specified locker for the element is invalid.
      */
-    includeElement(element: HTMLElement): void;
+    setRemovalState(element: HTMLElement, state: boolean, locker?: any): void;
     /**
-     * Gets the active styles from the specified node.
-     * @param node Node instance.
-     * @param styles Initial styles state.
-     * @returns Returns the initial styles state with changes.
+     * Sets the rendering state of the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element should be ignored by the renderer or not.
      */
-    getStyles(node: Node, styles?: Styles): Styles;
+    setRenderingState(element: HTMLElement, state: boolean): void;
     /**
-     * Gets the active styles from the focused node.
-     * @returns Returns the active styles.
+     * Clears the current selection.
      */
-    getCurrentStyles(): Styles;
+    clearSelection(): void;
     /**
      * Move the focus to this element.
      */
@@ -286,7 +292,7 @@ export declare class Element extends Control.Element {
      */
     fontColorAction(color: string): void;
     /**
-     * Formats the specified line height for the selection or at the insertion point.
+     * Change line height for the selection or at the insertion point.
      * @param height Line height.
      */
     lineHeightAction(height: string): void;

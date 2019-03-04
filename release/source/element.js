@@ -26,11 +26,11 @@ let Element = class Element extends Control.Element {
     constructor() {
         super();
         /**
-         * Cached HTML content.
+         * Current HTML content.
          */
-        this.cachedHTML = '';
+        this.currentHTML = '';
         /**
-         * List of denied tags in the editor.
+         * List of denied tags.
          */
         this.deniedTagList = [...settings_1.Settings.defaultDeniedTags];
         /**
@@ -38,13 +38,13 @@ let Element = class Element extends Control.Element {
          */
         this.observer = new MutationObserver(this.contentChangeHandler.bind(this));
         /**
-         * Map of locked nodes.
+         * Map of unremovable nodes.
          */
-        this.lockedMap = new WeakMap();
+        this.unremovableMap = new WeakMap();
         /**
-         * Map of ignored nodes.
+         * Set of ignored nodes.
          */
-        this.excludedSet = new WeakSet();
+        this.ignoredSet = new WeakSet();
         /**
          * Element styles.
          */
@@ -72,17 +72,19 @@ let Element = class Element extends Control.Element {
          */
         this.defaultValue = '';
         JSX.append(this.attachShadow({ mode: 'closed' }), this.editorStyles, this.editorLayout);
-        this.contentSlot.addEventListener('focus', this.unwrapSelection.bind(this), true);
-        this.contentSlot.addEventListener('keyup', this.saveContentChanges.bind(this), true);
-        this.contentSlot.addEventListener('blur', this.saveSelection.bind(this), true);
-        this.paragraphTag = 'p';
+        this.contentSlot.addEventListener('keyup', this.saveChanges.bind(this), true);
+        this.contentSlot.addEventListener('focus', this.restoreSelection.bind(this), true);
+        this.contentSlot.addEventListener('mousedown', this.clearSelection.bind(this), true);
+        this.contentSlot.addEventListener('mouseup', this.saveSelectionRange.bind(this), true);
+        this.contentSlot.addEventListener('blur', this.wrapSelectionRange.bind(this), true);
+        this.paragraphType = 'p';
     }
     /**
      * Update all validation attributes based on the current content.
      */
     updateValidation() {
-        this.updatePropertyState('empty', this.empty);
         this.updatePropertyState('invalid', !this.empty && !this.checkValidity());
+        this.updatePropertyState('empty', this.empty);
     }
     /**
      * Starts the content observer.
@@ -101,51 +103,67 @@ let Element = class Element extends Control.Element {
         this.observer.takeRecords();
     }
     /**
-     * Saves the current selection range and wraps into a new selection element.
+     * Preserves the current selection elements wrapping it into a new mark element.
      */
-    saveSelection() {
-        if (this.preserveSelection) {
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0 && !(this.selectionRange = selection.getRangeAt(0)).collapsed) {
-                this.selectionElement = JSX.create("mark", { "data-swe-editor-selection": true }, this.selectionRange.extractContents());
-                this.excludeElement(this.selectionElement);
-                this.stopContentObserver();
-                this.selectionRange.insertNode(this.selectionElement);
-                this.startContentObserver();
-            }
-        }
-    }
-    /**
-     * Unwraps the previous saved selection element.
-     */
-    unwrapSelection() {
-        if (this.preserveSelection && this.selectionElement) {
+    wrapSelectionRange() {
+        if (this.currentRange && !this.currentRange.collapsed && this.preserveSelection) {
             this.stopContentObserver();
-            JSX.unwrap(this.selectionElement);
+            this.currentMark = JSX.create("mark", { "data-swe-editor-selection": true }, this.currentRange.extractContents());
+            this.currentRange.insertNode(this.currentMark);
+            this.setRenderingState(this.currentMark, false);
             this.startContentObserver();
-            this.selectionElement = void 0;
         }
     }
     /**
-     * Clears the previously saved selection.
+     * Restores the previously preserved selection elements unwrapping the current mark element.
      */
-    clearSelection() {
-        if (this.preserveSelection) {
-            this.selectionElement = void 0;
-            this.selectionRange = void 0;
+    unwrapSelectionRange() {
+        if (this.currentMark) {
+            this.stopContentObserver();
+            JSX.unwrap(this.currentMark);
+            this.startContentObserver();
+            this.currentMark = void 0;
         }
     }
     /**
-     * Restores the previous saved selection range.
+     * Saves the current selection range.
      */
-    restoreSelection() {
-        if (this.preserveSelection && this.selectionRange) {
+    saveSelectionRange() {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            this.currentRange = selection.getRangeAt(0);
+        }
+    }
+    /**
+     * Restores the previously saved selection range.
+     */
+    restoreSelectionRange() {
+        if (this.currentRange && this.preserveSelection) {
             const selection = window.getSelection();
             selection.removeAllRanges();
-            selection.addRange(this.selectionRange);
-            this.selectionRange = void 0;
+            selection.addRange(this.currentRange);
         }
     }
+    /**
+     * Removes the current saved selection range.
+     */
+    removeSelectionRange() {
+        if (this.currentRange) {
+            window.getSelection().removeRange(this.currentRange);
+            this.currentRange = void 0;
+        }
+    }
+    /**
+     * Restores the previously saved selection range and unwraps the current mark element.
+     */
+    restoreSelection() {
+        this.unwrapSelectionRange();
+        this.restoreSelectionRange();
+    }
+    /**
+     * Restores the current focus in the specified element.
+     * @param element Element instance.
+     */
     restoreFocus(element) {
         const selection = window.getSelection();
         const range = document.createRange();
@@ -162,11 +180,12 @@ let Element = class Element extends Control.Element {
     restoreParagraph(focused) {
         const content = this.getRequiredChildElement(this.contentSlot);
         if (content.firstChild === null) {
-            const paragraph = JSX.create(this.paragraphTag, {});
+            const paragraph = JSX.create(this.paragraphType, {});
             if (paragraph.tagName !== 'BR') {
                 JSX.append(paragraph, JSX.create("br", null));
             }
             content.appendChild(paragraph);
+            this.currentHTML = content.innerHTML;
             if (focused) {
                 this.restoreFocus(paragraph);
             }
@@ -186,7 +205,7 @@ let Element = class Element extends Control.Element {
         for (let i = list.length - 1; i > -1; --i) {
             const node = list.item(i);
             if (node instanceof HTMLElement) {
-                if (this.lockedMap.has(node)) {
+                if (this.unremovableMap.has(node)) {
                     parent.insertBefore(node, next && next.isConnected ? next : parent.lastChild);
                     total++;
                 }
@@ -249,20 +268,20 @@ let Element = class Element extends Control.Element {
      * Saves the current content changes.
      * @returns Returns true when the content changes was saved, false otherwise.
      */
-    saveContentChanges() {
+    saveChanges() {
         const content = this.getRequiredChildElement(this.contentSlot);
-        if (this.cachedHTML !== content.innerHTML) {
+        if (this.currentHTML !== content.innerHTML) {
             const event = new Event('change', { bubbles: true, cancelable: true });
             if (this.dispatchEvent(event)) {
-                this.cachedHTML = content.innerHTML;
+                this.currentHTML = content.innerHTML;
                 this.updateValidation();
                 return true;
             }
             else {
                 this.stopContentObserver();
-                content.innerHTML = this.cachedHTML;
-                if ((this.selectionElement = content.querySelector('[data-swe-editor-selection]'))) {
-                    this.selectionRange = this.restoreFocus(this.selectionElement);
+                content.innerHTML = this.currentHTML;
+                if ((this.currentMark = content.querySelector('[data-swe-editor-selection]'))) {
+                    this.currentRange = this.restoreFocus(this.currentMark);
                 }
                 this.startContentObserver();
             }
@@ -295,7 +314,7 @@ let Element = class Element extends Control.Element {
             updated = this.removeDeniedNodes(record.addedNodes) > 0 || updated;
         }
         if (this.restoreParagraph(focused) || updated) {
-            this.cachedHTML = content.innerHTML;
+            this.currentHTML = content.innerHTML;
             this.updateValidation();
         }
         this.startContentObserver();
@@ -305,11 +324,11 @@ let Element = class Element extends Control.Element {
      */
     contentSlotChangeHandler() {
         const content = this.getRequiredChildElement(this.contentSlot);
-        this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
         content.contentEditable = (!this.readOnly && !this.disabled).toString();
-        this.cachedHTML = content.innerHTML;
-        this.clearSelection();
+        this.currentHTML = content.innerHTML;
+        this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
         this.updateValidation();
+        this.clearSelection();
         this.stopContentObserver();
         this.startContentObserver();
     }
@@ -348,7 +367,7 @@ let Element = class Element extends Control.Element {
         this.focus();
         const selection = window.getSelection();
         document.execCommand(name, false, value);
-        this.saveContentChanges();
+        this.saveChanges();
         return selection.focusNode.parentElement;
     }
     /**
@@ -373,18 +392,18 @@ let Element = class Element extends Control.Element {
      * Gets the element value.
      */
     get value() {
-        return helper_1.Helper.buildElement(this.getRequiredChildElement(this.contentSlot).childNodes, this.excludedSet);
+        return helper_1.Helper.buildHTMLNodes(this.getRequiredChildElement(this.contentSlot).childNodes, this.ignoredSet);
     }
     /**
      * Sets the element value.
      */
     set value(value) {
         const content = this.getRequiredChildElement(this.contentSlot);
-        content.innerHTML = value || '';
-        this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
-        this.cachedHTML = content.innerHTML;
-        this.clearSelection();
+        const focused = JSX.childOf(content, window.getSelection().focusNode);
+        this.currentHTML = content.innerHTML = value || '';
+        this.restoreParagraph(focused);
         this.updateValidation();
+        this.clearSelection();
     }
     /**
      * Gets the required state of the element.
@@ -435,19 +454,22 @@ let Element = class Element extends Control.Element {
      * Sets the preserve selection state.
      */
     set preserveSelection(state) {
+        if (!state) {
+            this.unwrapSelectionRange();
+        }
         this.updatePropertyState('preserveselection', state);
     }
     /**
-     * Gets the paragraph tag.
+     * Gets the paragraph type.
      */
-    get paragraphTag() {
+    get paragraphType() {
         return document.queryCommandValue('defaultParagraphSeparator');
     }
     /**
-     * Sets the paragraph tag.
+     * Sets the paragraph type.
      */
-    set paragraphTag(tag) {
-        document.execCommand('defaultParagraphSeparator', false, tag.toLowerCase());
+    set paragraphType(type) {
+        document.execCommand('defaultParagraphSeparator', false, type.toLowerCase());
     }
     /**
      * Gets the denied tag list.
@@ -462,7 +484,7 @@ let Element = class Element extends Control.Element {
         const content = this.getRequiredChildElement(this.contentSlot);
         this.deniedTagList = tags.map((tag) => tag.toLowerCase());
         if (this.removeDeniedNodes(content.children) > 0) {
-            this.saveContentChanges();
+            this.saveChanges();
         }
     }
     /**
@@ -478,99 +500,109 @@ let Element = class Element extends Control.Element {
         this.setAttribute('orientation', orientation);
     }
     /**
-     * Gets the current selection range.
+     * Gets the selected range.
      */
-    get selection() {
-        return this.selectionRange;
+    get selectedRange() {
+        return this.currentRange;
     }
     /**
-     * Locks the specified element, locked elements can't be removed by user actions in the editor.
-     * @param element Element that will be locked.
-     * @param locker Locker object, must be used to unlock the element.
-     * @throws Throws an error when the element is already locked.
+     * Gets the selected text.
      */
-    lockElement(element, locker = null) {
-        if (this.lockedMap.has(element)) {
-            throw new Error(`The specified element is already locked.`);
+    get selectedText() {
+        if (this.currentRange) {
+            return this.currentRange.cloneContents().textContent || '';
         }
-        this.lockedMap.set(element, locker);
+        return void 0;
     }
     /**
-     * Unlocks the specified element, unlocked elements can be removed by user actions in the editor.
-     * @param element Element that will be unlocked.
-     * @param locker Locked object used to lock the following element.
-     * @throws Throws an error when the element doesn't found or if the specified locked is invalid.
+     * Gets the selected HTML.
      */
-    unlockElement(element, locker = null) {
-        const entry = this.lockedMap.get(element);
-        if (entry !== locker) {
-            throw new Error(`Element doesn't found or invalid locker argument.`);
+    get selectedHTML() {
+        if (this.currentRange) {
+            return helper_1.Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredSet);
         }
-        this.lockedMap.delete(element);
+        return void 0;
     }
     /**
-     * Marks the specified element to be excluded by the value renderer.
-     * @param element Element that will be excluded.
+     * Gets the selected styles.
      */
-    excludeElement(element) {
-        this.excludedSet.add(element);
-    }
-    /**
-     * Marks the specified element (that was excluded before) to be included by the value renderer.
-     * @param element Element that will be included.
-     */
-    includeElement(element) {
-        this.excludedSet.delete(element);
-    }
-    /**
-     * Gets the active styles from the specified node.
-     * @param node Node instance.
-     * @param styles Initial styles state.
-     * @returns Returns the initial styles state with changes.
-     */
-    getStyles(node, styles) {
-        const content = this.getRequiredChildElement(this.contentSlot);
-        const current = styles || { ...settings_1.Settings.defaultStyles };
-        current.zoom = parseFloat(this.contentSlot.style.zoom || '1.0');
-        while (node && node !== content) {
-            if (node instanceof HTMLElement) {
-                helper_1.Helper.collectStylesByElement(current, node);
-                helper_1.Helper.collectStylesByCSS(current, window.getComputedStyle(node));
-            }
-            node = node.parentElement;
-        }
-        return current;
-    }
-    /**
-     * Gets the active styles from the focused node.
-     * @returns Returns the active styles.
-     */
-    getCurrentStyles() {
+    get selectedStyles() {
         const selection = window.getSelection();
         const styles = { ...settings_1.Settings.defaultStyles };
         if (selection.focusNode) {
-            this.getStyles(selection.focusNode, styles);
+            const content = this.getRequiredChildElement(this.contentSlot);
+            let current = selection.focusNode;
+            styles.zoom = parseFloat(this.contentSlot.style.zoom || '1.0');
+            while (current && current !== content) {
+                if (current instanceof HTMLElement) {
+                    helper_1.Helper.collectStylesByElement(styles, current);
+                    helper_1.Helper.collectStylesByCSS(styles, window.getComputedStyle(current));
+                }
+                current = current.parentElement;
+            }
         }
         return styles;
+    }
+    /**
+     * Sets the removal state for the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element can be removed by the user or not.
+     * @param locker Locker object, should be used to unlock the element.
+     * @throws Throws an error when the specified locker for the element is invalid.
+     */
+    setRemovalState(element, state, locker = null) {
+        const entry = this.unremovableMap.get(element);
+        if (state) {
+            if (entry !== locker) {
+                throw new Error(`Element doesn't found or invalid locker argument.`);
+            }
+            this.unremovableMap.delete(element);
+        }
+        else {
+            if (entry && entry !== locker) {
+                throw new Error(`Element already locked by another locker.`);
+            }
+            this.unremovableMap.set(element, locker);
+        }
+    }
+    /**
+     * Sets the rendering state of the specified element.
+     * @param element Element instance.
+     * @param state Determines whether the element should be ignored by the renderer or not.
+     */
+    setRenderingState(element, state) {
+        if (state) {
+            this.ignoredSet.delete(element);
+        }
+        else {
+            this.ignoredSet.add(element);
+        }
+    }
+    /**
+     * Clears the current selection.
+     */
+    clearSelection() {
+        this.unwrapSelectionRange();
+        this.removeSelectionRange();
     }
     /**
      * Move the focus to this element.
      */
     focus() {
-        this.unwrapSelection();
+        this.unwrapSelectionRange();
         this.callRequiredChildMethod(this.contentSlot, 'focus', []);
-        this.restoreSelection();
+        this.restoreSelectionRange();
     }
     /**
      * Reset the element value to its initial value.
      */
     reset() {
         const content = this.getRequiredChildElement(this.contentSlot);
-        content.innerHTML = this.defaultValue || '';
-        this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
-        this.cachedHTML = content.innerHTML;
-        this.clearSelection();
+        const focused = JSX.childOf(content, window.getSelection().focusNode);
+        this.currentHTML = content.innerHTML = this.defaultValue || '';
+        this.restoreParagraph(focused);
         this.updateValidation();
+        this.clearSelection();
     }
     /**
      * Checks the element validity.
@@ -586,7 +618,7 @@ let Element = class Element extends Control.Element {
     fontNameAction(name) {
         const element = this.performSurrounding('span');
         this.clearNodes(element.children, 'span', 'fontFamily');
-        this.saveContentChanges();
+        this.saveChanges();
         element.style.fontFamily = name;
         element.normalize();
     }
@@ -597,7 +629,7 @@ let Element = class Element extends Control.Element {
     fontSizeAction(size) {
         const element = this.performSurrounding('span');
         this.clearNodes(element.children, 'span', 'fontSize');
-        this.saveContentChanges();
+        this.saveChanges();
         element.style.fontSize = size;
         element.normalize();
     }
@@ -608,17 +640,17 @@ let Element = class Element extends Control.Element {
     fontColorAction(color) {
         const element = this.performSurrounding('span');
         this.clearNodes(element.children, 'span', 'color');
-        this.saveContentChanges();
+        this.saveChanges();
         element.style.color = color;
         element.normalize();
     }
     /**
-     * Formats the specified line height for the selection or at the insertion point.
+     * Change line height for the selection or at the insertion point.
      * @param height Line height.
      */
     lineHeightAction(height) {
         const element = this.performSurrounding('p');
-        this.saveContentChanges();
+        this.saveChanges();
         element.style.lineHeight = height;
     }
     /**
@@ -739,13 +771,13 @@ let Element = class Element extends Control.Element {
 };
 __decorate([
     Class.Private()
-], Element.prototype, "selectionRange", void 0);
+], Element.prototype, "currentRange", void 0);
 __decorate([
     Class.Private()
-], Element.prototype, "selectionElement", void 0);
+], Element.prototype, "currentMark", void 0);
 __decorate([
     Class.Private()
-], Element.prototype, "cachedHTML", void 0);
+], Element.prototype, "currentHTML", void 0);
 __decorate([
     Class.Private()
 ], Element.prototype, "deniedTagList", void 0);
@@ -754,10 +786,10 @@ __decorate([
 ], Element.prototype, "observer", void 0);
 __decorate([
     Class.Private()
-], Element.prototype, "lockedMap", void 0);
+], Element.prototype, "unremovableMap", void 0);
 __decorate([
     Class.Private()
-], Element.prototype, "excludedSet", void 0);
+], Element.prototype, "ignoredSet", void 0);
 __decorate([
     Class.Private()
 ], Element.prototype, "styles", void 0);
@@ -784,13 +816,19 @@ __decorate([
 ], Element.prototype, "stopContentObserver", null);
 __decorate([
     Class.Private()
-], Element.prototype, "saveSelection", null);
+], Element.prototype, "wrapSelectionRange", null);
 __decorate([
     Class.Private()
-], Element.prototype, "unwrapSelection", null);
+], Element.prototype, "unwrapSelectionRange", null);
 __decorate([
     Class.Private()
-], Element.prototype, "clearSelection", null);
+], Element.prototype, "saveSelectionRange", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "restoreSelectionRange", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "removeSelectionRange", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "restoreSelection", null);
@@ -811,7 +849,7 @@ __decorate([
 ], Element.prototype, "clearNodes", null);
 __decorate([
     Class.Private()
-], Element.prototype, "saveContentChanges", null);
+], Element.prototype, "saveChanges", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "getConnectedParent", null);
@@ -853,7 +891,7 @@ __decorate([
 ], Element.prototype, "preserveSelection", null);
 __decorate([
     Class.Public()
-], Element.prototype, "paragraphTag", null);
+], Element.prototype, "paragraphType", null);
 __decorate([
     Class.Public()
 ], Element.prototype, "deniedTags", null);
@@ -862,25 +900,25 @@ __decorate([
 ], Element.prototype, "orientation", null);
 __decorate([
     Class.Public()
-], Element.prototype, "selection", null);
+], Element.prototype, "selectedRange", null);
 __decorate([
     Class.Public()
-], Element.prototype, "lockElement", null);
+], Element.prototype, "selectedText", null);
 __decorate([
     Class.Public()
-], Element.prototype, "unlockElement", null);
+], Element.prototype, "selectedHTML", null);
 __decorate([
     Class.Public()
-], Element.prototype, "excludeElement", null);
+], Element.prototype, "selectedStyles", null);
 __decorate([
     Class.Public()
-], Element.prototype, "includeElement", null);
+], Element.prototype, "setRemovalState", null);
 __decorate([
     Class.Public()
-], Element.prototype, "getStyles", null);
+], Element.prototype, "setRenderingState", null);
 __decorate([
     Class.Public()
-], Element.prototype, "getCurrentStyles", null);
+], Element.prototype, "clearSelection", null);
 __decorate([
     Class.Public()
 ], Element.prototype, "focus", null);

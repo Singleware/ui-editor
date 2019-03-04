@@ -16,7 +16,7 @@ export class Helper extends Class.Null {
    * Map of style keys by element name.
    */
   @Class.Private()
-  private static stylesByElementName = {
+  private static stylesByElementName = <any>{
     B: [
       {
         target: 'bold'
@@ -121,13 +121,13 @@ export class Helper extends Class.Null {
         source: 'color'
       }
     ]
-  } as any;
+  };
 
   /**
    * Map of styles by CSS declaration.
    */
   @Class.Private()
-  private static stylesByCSSDeclaration = {
+  private static stylesByCSSDeclaration = <any>{
     lineHeight: {
       target: 'lineHeight'
     },
@@ -148,7 +148,57 @@ export class Helper extends Class.Null {
         justify: 'alignJustify'
       }
     }
-  } as any;
+  };
+
+  /**
+   * Gets the representative string of the specified attribute list.
+   * @param attributes List of attributes.
+   * @returns Returns the representative string of the specified attribute list.
+   */
+  @Class.Private()
+  private static buildHTMLAttributes(attributes: NamedNodeMap): string {
+    const list = [];
+    for (let i = 0; i < attributes.length; ++i) {
+      const attribute = <Attr>attributes.item(i);
+      if (attribute.value !== null) {
+        list.push(`${attribute.name}="${JSX.escape(attribute.value)}"`);
+      } else {
+        list.push(`${attribute.value}`);
+      }
+    }
+    return list.join(' ');
+  }
+
+  /**
+   * Gets the representative string of the specified node list.
+   * @param nodes List of nodes.
+   * @returns Returns the representative string of the specified node list.
+   */
+  @Class.Public()
+  public static buildHTMLNodes(nodes: NodeList, ignored: WeakSet<Node> | Set<Node>): string {
+    const list = [];
+    for (const node of nodes) {
+      if (node instanceof HTMLElement) {
+        const children = this.buildHTMLNodes(node.childNodes, ignored);
+        if (ignored.has(node)) {
+          if (children.length > 0) {
+            list.push(children);
+          }
+        } else {
+          const tagName = node.tagName.toLowerCase();
+          const attributes = this.buildHTMLAttributes(node.attributes);
+          if (children.length > 0) {
+            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
+          } else {
+            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
+          }
+        }
+      } else {
+        list.push(node.textContent || '');
+      }
+    }
+    return list.join('');
+  }
 
   /**
    * Collect all styles by its respective CSS declaration form the specified CSS declarations.
@@ -161,12 +211,12 @@ export class Helper extends Class.Null {
     for (const entry in this.stylesByCSSDeclaration) {
       if ((style = this.stylesByCSSDeclaration[entry])) {
         if (style.target) {
-          if ((styles as any)[style.target] === void 0) {
-            (styles as any)[style.target] = (declarations as any)[entry];
+          if ((<any>styles)[style.target] === void 0) {
+            (<any>styles)[style.target] = (<any>declarations)[entry];
           }
         } else if (style.mapping) {
-          if ((property = style.mapping[(declarations as any)[entry]])) {
-            (styles as any)[property] = true;
+          if ((property = style.mapping[(<any>declarations)[entry]])) {
+            (<any>styles)[property] = true;
           }
         }
       }
@@ -184,63 +234,13 @@ export class Helper extends Class.Null {
     for (const entry of entries) {
       if (entry && entry.target) {
         if (entry.source) {
-          if ((styles as any)[entry.target] === void 0 && element.hasAttribute(entry.source)) {
-            (styles as any)[entry.target] = element.getAttribute(entry.source);
+          if ((<any>styles)[entry.target] === void 0 && element.hasAttribute(entry.source)) {
+            (<any>styles)[entry.target] = element.getAttribute(entry.source);
           }
         } else {
-          (styles as any)[entry.target] = true;
+          (<any>styles)[entry.target] = true;
         }
       }
     }
-  }
-
-  /**
-   * Gets the representative string of the specified attribute list.
-   * @param attributes List of attributes.
-   * @returns Returns the representative string of the specified attribute list.
-   */
-  @Class.Private()
-  private static buildAttributes(attributes: NamedNodeMap): string {
-    const list = [];
-    for (let i = 0; i < attributes.length; ++i) {
-      const attribute = attributes.item(i) as Attr;
-      if (attribute.value !== null) {
-        list.push(`${attribute.name}="${JSX.escape(attribute.value)}"`);
-      } else {
-        list.push(`${attribute.value}`);
-      }
-    }
-    return list.join(' ');
-  }
-
-  /**
-   * Gets the representative string of the specified node list.
-   * @param nodes List of nodes.
-   * @returns Returns the representative string of the specified node list.
-   */
-  @Class.Public()
-  public static buildElement(nodes: NodeList, ignored: WeakSet<Node> | Set<Node>): string {
-    const list = [];
-    for (const node of nodes) {
-      if (node instanceof HTMLElement) {
-        const children = this.buildElement(node.childNodes, ignored);
-        if (ignored.has(node)) {
-          if (children.length > 0) {
-            list.push(children);
-          }
-        } else {
-          const tagName = node.tagName.toLowerCase();
-          const attributes = this.buildAttributes(node.attributes);
-          if (children.length > 0) {
-            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
-          } else {
-            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
-          }
-        }
-      } else {
-        list.push(node.textContent || '');
-      }
-    }
-    return list.join('');
   }
 }

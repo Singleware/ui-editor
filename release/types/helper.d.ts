@@ -17,6 +17,18 @@ export declare class Helper extends Class.Null {
      */
     private static stylesByCSSDeclaration;
     /**
+     * Gets the representative string of the specified attribute list.
+     * @param attributes List of attributes.
+     * @returns Returns the representative string of the specified attribute list.
+     */
+    private static buildHTMLAttributes;
+    /**
+     * Gets the representative string of the specified node list.
+     * @param nodes List of nodes.
+     * @returns Returns the representative string of the specified node list.
+     */
+    static buildHTMLNodes(nodes: NodeList, ignored: WeakSet<Node> | Set<Node>): string;
+    /**
      * Collect all styles by its respective CSS declaration form the specified CSS declarations.
      * @param styles Styles map.
      * @param declarations CSS declarations.
@@ -28,16 +40,4 @@ export declare class Helper extends Class.Null {
      * @param element Element instance.
      */
     static collectStylesByElement(styles: Styles, element: HTMLElement): void;
-    /**
-     * Gets the representative string of the specified attribute list.
-     * @param attributes List of attributes.
-     * @returns Returns the representative string of the specified attribute list.
-     */
-    private static buildAttributes;
-    /**
-     * Gets the representative string of the specified node list.
-     * @param nodes List of nodes.
-     * @returns Returns the representative string of the specified node list.
-     */
-    static buildElement(nodes: NodeList, ignored: WeakSet<Node> | Set<Node>): string;
 }
