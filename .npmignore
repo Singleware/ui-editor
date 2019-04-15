@@ -1,6 +1,8 @@
 .*
 tsconfig.json
 node_modules/
+release/**/*.tsbuildinfo
+release/**/*.map
 release/examples/
 examples/
 source/

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 import * as Class from '@singleware/class';
@@ -83,6 +83,7 @@ export class Stylesheet extends OSS.Stylesheet {
     this.verticalToolbar.height = 'inherit';
     this.content.width = 'inherit';
     this.content.height = 'inherit';
+    this.content.zoom = '1';
     this.slottedContent.display = 'block';
     this.slottedContent.position = 'relative';
     this.slottedContent.overflow = 'auto';

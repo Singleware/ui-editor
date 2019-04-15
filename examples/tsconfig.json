@@ -5,9 +5,12 @@
     "jsx": "react",
     "jsxFactory": "JSX.create",
     "strict": true,
+    "incremental": true,
     "experimentalDecorators": true,
     "suppressExcessPropertyErrors": true,
     "outDir": "../release/"
   },
-  "include": ["./**/*"]
+  "include": [
+    "./**/*"
+  ]
 }

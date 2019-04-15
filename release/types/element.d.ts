@@ -29,9 +29,9 @@ export declare class Element extends Control.Element {
      */
     private unremovableMap;
     /**
-     * Set of ignored nodes.
+     * Map of ignored nodes.
      */
-    private ignoredSet;
+    private ignoredMap;
     /**
      * Element styles.
      */
@@ -72,6 +72,12 @@ export declare class Element extends Control.Element {
      * Restores the previously preserved selection elements unwrapping the current mark element.
      */
     private unwrapSelectionRange;
+    /**
+     * Gets the current selection.
+     * @returns Returns the selection object.
+     * @throws Throws an error when the selection object doesn't exists.
+     */
+    private getSelection;
     /**
      * Saves the current selection range.
      */
@@ -254,11 +260,12 @@ export declare class Element extends Control.Element {
      */
     setRemovalState(element: HTMLElement, state: boolean, locker?: any): void;
     /**
-     * Sets the rendering state of the specified element.
-     * @param element Element instance.
-     * @param state Determines whether the element should be ignored by the renderer or not.
+     * Sets the rendering state of the specified node.
+     * @param node Node instance.
+     * @param state Determines whether the node should be ignored by the renderer or not.
+     * @param children Determines whether the node children should be affected or not.
      */
-    setRenderingState(element: HTMLElement, state: boolean): void;
+    setRenderingState(node: Node, state: boolean, children?: boolean): void;
     /**
      * Clears the current selection.
      */

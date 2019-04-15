@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 const Class = require("@singleware/class");
@@ -37,15 +37,16 @@ let Helper = class Helper extends Class.Null {
     /**
      * Gets the representative string of the specified node list.
      * @param nodes List of nodes.
+     * @param ignore Map of ignored elements and its children.
      * @returns Returns the representative string of the specified node list.
      */
-    static buildHTMLNodes(nodes, ignored) {
+    static buildHTMLNodes(nodes, ignore) {
         const list = [];
         for (const node of nodes) {
             if (node instanceof HTMLElement) {
-                const children = this.buildHTMLNodes(node.childNodes, ignored);
-                if (ignored.has(node)) {
-                    if (children.length > 0) {
+                const children = this.buildHTMLNodes(node.childNodes, ignore);
+                if (ignore.has(node)) {
+                    if (ignore.get(node) !== true && children.length > 0) {
                         list.push(children);
                     }
                 }
@@ -56,7 +57,7 @@ let Helper = class Helper extends Class.Null {
                         list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
                     }
                     else {
-                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
+                        list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}${this.emptyElements.has(tagName) ? '' : '/'}>`);
                     }
                 }
             }
@@ -94,7 +95,7 @@ let Helper = class Helper extends Class.Null {
      * @param element Element instance.
      */
     static collectStylesByElement(styles, element) {
-        const entries = this.stylesByElementName[element.tagName] || [];
+        const entries = this.stylesByTagName[element.tagName] || [];
         for (const entry of entries) {
             if (entry && entry.target) {
                 if (entry.source) {
@@ -110,130 +111,37 @@ let Helper = class Helper extends Class.Null {
     }
 };
 /**
- * Map of style keys by element name.
+ * Map of styles by tag name.
  */
-Helper.stylesByElementName = {
-    B: [
-        {
-            target: 'bold'
-        }
-    ],
-    STRONG: [
-        {
-            target: 'bold'
-        }
-    ],
-    I: [
-        {
-            target: 'italic'
-        }
-    ],
-    EM: [
-        {
-            target: 'italic'
-        }
-    ],
-    U: [
-        {
-            target: 'underline'
-        }
-    ],
-    INS: [
-        {
-            target: 'underline'
-        }
-    ],
-    S: [
-        {
-            target: 'strikeThrough'
-        }
-    ],
-    STRIKE: [
-        {
-            target: 'strikeThrough'
-        }
-    ],
-    DEL: [
-        {
-            target: 'strikeThrough'
-        }
-    ],
-    UL: [
-        {
-            target: 'unorderedList'
-        }
-    ],
-    OL: [
-        {
-            target: 'orderedList'
-        }
-    ],
-    P: [
-        {
-            target: 'paragraph'
-        }
-    ],
-    H1: [
-        {
-            target: 'heading1'
-        }
-    ],
-    H2: [
-        {
-            target: 'heading2'
-        }
-    ],
-    H3: [
-        {
-            target: 'heading3'
-        }
-    ],
-    H4: [
-        {
-            target: 'heading4'
-        }
-    ],
-    H5: [
-        {
-            target: 'heading5'
-        }
-    ],
-    H6: [
-        {
-            target: 'heading6'
-        }
-    ],
-    FONT: [
-        {
-            target: 'faceName',
-            source: 'face'
-        },
-        {
-            target: 'fontSize',
-            source: 'size'
-        },
-        {
-            target: 'fontColor',
-            source: 'color'
-        }
-    ]
+Helper.stylesByTagName = {
+    B: [{ target: 'bold' }],
+    STRONG: [{ target: 'bold' }],
+    I: [{ target: 'italic' }],
+    EM: [{ target: 'italic' }],
+    U: [{ target: 'underline' }],
+    INS: [{ target: 'underline' }],
+    S: [{ target: 'strikeThrough' }],
+    STRIKE: [{ target: 'strikeThrough' }],
+    DEL: [{ target: 'strikeThrough' }],
+    UL: [{ target: 'unorderedList' }],
+    OL: [{ target: 'orderedList' }],
+    P: [{ target: 'paragraph' }],
+    H1: [{ target: 'heading1' }],
+    H2: [{ target: 'heading2' }],
+    H3: [{ target: 'heading3' }],
+    H4: [{ target: 'heading4' }],
+    H5: [{ target: 'heading5' }],
+    H6: [{ target: 'heading6' }],
+    FONT: [{ target: 'faceName', source: 'face' }, { target: 'fontSize', source: 'size' }, { target: 'fontColor', source: 'color' }]
 };
 /**
  * Map of styles by CSS declaration.
  */
 Helper.stylesByCSSDeclaration = {
-    lineHeight: {
-        target: 'lineHeight'
-    },
-    fontSize: {
-        target: 'fontSize'
-    },
-    fontFamily: {
-        target: 'fontName'
-    },
-    color: {
-        target: 'fontColor'
-    },
+    lineHeight: { target: 'lineHeight' },
+    fontSize: { target: 'fontSize' },
+    fontFamily: { target: 'fontName' },
+    color: { target: 'fontColor' },
     textAlign: {
         mapping: {
             left: 'alignLeft',
@@ -243,12 +151,34 @@ Helper.stylesByCSSDeclaration = {
         }
     }
 };
+/**
+ * Set of elements without children.
+ */
+Helper.emptyElements = new Set([
+    'area',
+    'base',
+    'br',
+    'col',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr'
+]);
 __decorate([
     Class.Private()
-], Helper, "stylesByElementName", void 0);
+], Helper, "stylesByTagName", void 0);
 __decorate([
     Class.Private()
 ], Helper, "stylesByCSSDeclaration", void 0);
+__decorate([
+    Class.Private()
+], Helper, "emptyElements", void 0);
 __decorate([
     Class.Private()
 ], Helper, "buildHTMLAttributes", null);

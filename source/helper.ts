@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 import * as Class from '@singleware/class';
@@ -13,133 +13,40 @@ import { Styles } from './styles';
 @Class.Describe()
 export class Helper extends Class.Null {
   /**
-   * Map of style keys by element name.
+   * Map of styles by tag name.
    */
   @Class.Private()
-  private static stylesByElementName = <any>{
-    B: [
-      {
-        target: 'bold'
-      }
-    ],
-    STRONG: [
-      {
-        target: 'bold'
-      }
-    ],
-    I: [
-      {
-        target: 'italic'
-      }
-    ],
-    EM: [
-      {
-        target: 'italic'
-      }
-    ],
-    U: [
-      {
-        target: 'underline'
-      }
-    ],
-    INS: [
-      {
-        target: 'underline'
-      }
-    ],
-    S: [
-      {
-        target: 'strikeThrough'
-      }
-    ],
-    STRIKE: [
-      {
-        target: 'strikeThrough'
-      }
-    ],
-    DEL: [
-      {
-        target: 'strikeThrough'
-      }
-    ],
-    UL: [
-      {
-        target: 'unorderedList'
-      }
-    ],
-    OL: [
-      {
-        target: 'orderedList'
-      }
-    ],
-    P: [
-      {
-        target: 'paragraph'
-      }
-    ],
-    H1: [
-      {
-        target: 'heading1'
-      }
-    ],
-    H2: [
-      {
-        target: 'heading2'
-      }
-    ],
-    H3: [
-      {
-        target: 'heading3'
-      }
-    ],
-    H4: [
-      {
-        target: 'heading4'
-      }
-    ],
-    H5: [
-      {
-        target: 'heading5'
-      }
-    ],
-    H6: [
-      {
-        target: 'heading6'
-      }
-    ],
-    FONT: [
-      {
-        target: 'faceName',
-        source: 'face'
-      },
-      {
-        target: 'fontSize',
-        source: 'size'
-      },
-      {
-        target: 'fontColor',
-        source: 'color'
-      }
-    ]
+  private static stylesByTagName = {
+    B: [{ target: 'bold' }],
+    STRONG: [{ target: 'bold' }],
+    I: [{ target: 'italic' }],
+    EM: [{ target: 'italic' }],
+    U: [{ target: 'underline' }],
+    INS: [{ target: 'underline' }],
+    S: [{ target: 'strikeThrough' }],
+    STRIKE: [{ target: 'strikeThrough' }],
+    DEL: [{ target: 'strikeThrough' }],
+    UL: [{ target: 'unorderedList' }],
+    OL: [{ target: 'orderedList' }],
+    P: [{ target: 'paragraph' }],
+    H1: [{ target: 'heading1' }],
+    H2: [{ target: 'heading2' }],
+    H3: [{ target: 'heading3' }],
+    H4: [{ target: 'heading4' }],
+    H5: [{ target: 'heading5' }],
+    H6: [{ target: 'heading6' }],
+    FONT: [{ target: 'faceName', source: 'face' }, { target: 'fontSize', source: 'size' }, { target: 'fontColor', source: 'color' }]
   };
 
   /**
    * Map of styles by CSS declaration.
    */
   @Class.Private()
-  private static stylesByCSSDeclaration = <any>{
-    lineHeight: {
-      target: 'lineHeight'
-    },
-    fontSize: {
-      target: 'fontSize'
-    },
-    fontFamily: {
-      target: 'fontName'
-    },
-    color: {
-      target: 'fontColor'
-    },
+  private static stylesByCSSDeclaration = {
+    lineHeight: { target: 'lineHeight' },
+    fontSize: { target: 'fontSize' },
+    fontFamily: { target: 'fontName' },
+    color: { target: 'fontColor' },
     textAlign: {
       mapping: {
         left: 'alignLeft',
@@ -149,6 +56,27 @@ export class Helper extends Class.Null {
       }
     }
   };
+
+  /**
+   * Set of elements without children.
+   */
+  @Class.Private()
+  private static emptyElements = new Set([
+    'area',
+    'base',
+    'br',
+    'col',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr'
+  ]);
 
   /**
    * Gets the representative string of the specified attribute list.
@@ -172,16 +100,17 @@ export class Helper extends Class.Null {
   /**
    * Gets the representative string of the specified node list.
    * @param nodes List of nodes.
+   * @param ignore Map of ignored elements and its children.
    * @returns Returns the representative string of the specified node list.
    */
   @Class.Public()
-  public static buildHTMLNodes(nodes: NodeList, ignored: WeakSet<Node> | Set<Node>): string {
+  public static buildHTMLNodes(nodes: NodeList, ignore: WeakMap<Node, boolean>): string {
     const list = [];
     for (const node of nodes) {
       if (node instanceof HTMLElement) {
-        const children = this.buildHTMLNodes(node.childNodes, ignored);
-        if (ignored.has(node)) {
-          if (children.length > 0) {
+        const children = this.buildHTMLNodes(node.childNodes, ignore);
+        if (ignore.has(node)) {
+          if (ignore.get(node) !== true && children.length > 0) {
             list.push(children);
           }
         } else {
@@ -190,7 +119,7 @@ export class Helper extends Class.Null {
           if (children.length > 0) {
             list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
           } else {
-            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}/>`);
+            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}${this.emptyElements.has(tagName) ? '' : '/'}>`);
           }
         }
       } else {
@@ -209,7 +138,7 @@ export class Helper extends Class.Null {
   public static collectStylesByCSS(styles: Styles, declarations: CSSStyleDeclaration): void {
     let style, property;
     for (const entry in this.stylesByCSSDeclaration) {
-      if ((style = this.stylesByCSSDeclaration[entry])) {
+      if ((style = (<any>this.stylesByCSSDeclaration)[entry])) {
         if (style.target) {
           if ((<any>styles)[style.target] === void 0) {
             (<any>styles)[style.target] = (<any>declarations)[entry];
@@ -230,7 +159,7 @@ export class Helper extends Class.Null {
    */
   @Class.Public()
   public static collectStylesByElement(styles: Styles, element: HTMLElement): void {
-    const entries = this.stylesByElementName[element.tagName] || [];
+    const entries = (<any>this.stylesByTagName)[element.tagName] || [];
     for (const entry of entries) {
       if (entry && entry.target) {
         if (entry.source) {

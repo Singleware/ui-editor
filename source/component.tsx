@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 import * as Class from '@singleware/class';
@@ -250,13 +250,14 @@ export class Component<T extends Properties = Properties> extends Control.Compon
   }
 
   /**
-   * Sets the rendering state of the specified element.
-   * @param element Element instance.
-   * @param state Determines whether the element should be ignored by the renderer or not.
+   * Sets the rendering state of the specified node.
+   * @param node Node instance.
+   * @param state Determines whether the node should be ignored by the renderer or not.
+   * @param children Determines whether the node children should be affected or not.
    */
   @Class.Public()
-  public setRenderingState(element: HTMLElement, state: boolean): void {
-    this.skeleton.setRenderingState(element, state);
+  public setRenderingState(node: Node, state: boolean, children?: boolean): void {
+    this.skeleton.setRenderingState(node, state, children);
   }
 
   /**

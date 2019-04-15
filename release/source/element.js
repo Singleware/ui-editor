@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 const Class = require("@singleware/class");
@@ -42,9 +42,9 @@ let Element = class Element extends Control.Element {
          */
         this.unremovableMap = new WeakMap();
         /**
-         * Set of ignored nodes.
+         * Map of ignored nodes.
          */
-        this.ignoredSet = new WeakSet();
+        this.ignoredMap = new WeakMap();
         /**
          * Element styles.
          */
@@ -56,7 +56,7 @@ let Element = class Element extends Control.Element {
         /**
          * Content element.
          */
-        this.contentSlot = (JSX.create("slot", { name: "content", class: "content", style: "zoom:1.0", onSlotChange: this.contentSlotChangeHandler.bind(this) }));
+        this.contentSlot = JSX.create("slot", { name: "content", class: "content", onSlotChange: this.contentSlotChangeHandler.bind(this) });
         /**
          * Editor layout element.
          */
@@ -126,10 +126,22 @@ let Element = class Element extends Control.Element {
         }
     }
     /**
+     * Gets the current selection.
+     * @returns Returns the selection object.
+     * @throws Throws an error when the selection object doesn't exists.
+     */
+    getSelection() {
+        const selection = window.getSelection();
+        if (!selection) {
+            throw new Error(`There's no selection.`);
+        }
+        return selection;
+    }
+    /**
      * Saves the current selection range.
      */
     saveSelectionRange() {
-        const selection = window.getSelection();
+        const selection = this.getSelection();
         if (selection.rangeCount > 0) {
             this.currentRange = selection.getRangeAt(0);
         }
@@ -139,7 +151,7 @@ let Element = class Element extends Control.Element {
      */
     restoreSelectionRange() {
         if (this.currentRange && this.preserveSelection) {
-            const selection = window.getSelection();
+            const selection = this.getSelection();
             selection.removeAllRanges();
             selection.addRange(this.currentRange);
         }
@@ -149,7 +161,7 @@ let Element = class Element extends Control.Element {
      */
     removeSelectionRange() {
         if (this.currentRange) {
-            window.getSelection().removeRange(this.currentRange);
+            this.getSelection().removeRange(this.currentRange);
             this.currentRange = void 0;
         }
     }
@@ -165,7 +177,7 @@ let Element = class Element extends Control.Element {
      * @param element Element instance.
      */
     restoreFocus(element) {
-        const selection = window.getSelection();
+        const selection = this.getSelection();
         const range = document.createRange();
         range.selectNodeContents(element);
         selection.removeAllRanges();
@@ -305,7 +317,7 @@ let Element = class Element extends Control.Element {
      */
     contentChangeHandler(records) {
         const content = this.getRequiredChildElement(this.contentSlot);
-        const focused = JSX.childOf(content, window.getSelection().focusNode);
+        const focused = JSX.childOf(content, this.getSelection().focusNode);
         let updated = false;
         this.stopContentObserver();
         for (const record of records) {
@@ -326,7 +338,7 @@ let Element = class Element extends Control.Element {
         const content = this.getRequiredChildElement(this.contentSlot);
         content.contentEditable = (!this.readOnly && !this.disabled).toString();
         this.currentHTML = content.innerHTML;
-        this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
+        this.restoreParagraph(JSX.childOf(content, this.getSelection().focusNode));
         this.updateValidation();
         this.clearSelection();
         this.stopContentObserver();
@@ -339,7 +351,7 @@ let Element = class Element extends Control.Element {
      */
     performSurrounding(tag) {
         this.focus();
-        const selection = window.getSelection();
+        const selection = this.getSelection();
         const range = selection.getRangeAt(0);
         let element;
         if (range.startContainer instanceof HTMLElement && range.startContainer.tagName.toLowerCase() === tag) {
@@ -365,7 +377,7 @@ let Element = class Element extends Control.Element {
      */
     performCommand(name, value) {
         this.focus();
-        const selection = window.getSelection();
+        const selection = this.getSelection();
         document.execCommand(name, false, value);
         this.saveChanges();
         return selection.focusNode.parentElement;
@@ -392,14 +404,14 @@ let Element = class Element extends Control.Element {
      * Gets the element value.
      */
     get value() {
-        return helper_1.Helper.buildHTMLNodes(this.getRequiredChildElement(this.contentSlot).childNodes, this.ignoredSet);
+        return helper_1.Helper.buildHTMLNodes(this.getRequiredChildElement(this.contentSlot).childNodes, this.ignoredMap);
     }
     /**
      * Sets the element value.
      */
     set value(value) {
         const content = this.getRequiredChildElement(this.contentSlot);
-        const focused = JSX.childOf(content, window.getSelection().focusNode);
+        const focused = JSX.childOf(content, this.getSelection().focusNode);
         this.currentHTML = content.innerHTML = value || '';
         this.restoreParagraph(focused);
         this.updateValidation();
@@ -519,7 +531,7 @@ let Element = class Element extends Control.Element {
      */
     get selectedHTML() {
         if (this.currentRange) {
-            return helper_1.Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredSet);
+            return helper_1.Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredMap);
         }
         return void 0;
     }
@@ -566,16 +578,17 @@ let Element = class Element extends Control.Element {
         }
     }
     /**
-     * Sets the rendering state of the specified element.
-     * @param element Element instance.
-     * @param state Determines whether the element should be ignored by the renderer or not.
+     * Sets the rendering state of the specified node.
+     * @param node Node instance.
+     * @param state Determines whether the node should be ignored by the renderer or not.
+     * @param children Determines whether the node children should be affected or not.
      */
-    setRenderingState(element, state) {
+    setRenderingState(node, state, children) {
         if (state) {
-            this.ignoredSet.delete(element);
+            this.ignoredMap.delete(node);
         }
         else {
-            this.ignoredSet.add(element);
+            this.ignoredMap.set(node, children || false);
         }
     }
     /**
@@ -598,7 +611,7 @@ let Element = class Element extends Control.Element {
      */
     reset() {
         const content = this.getRequiredChildElement(this.contentSlot);
-        const focused = JSX.childOf(content, window.getSelection().focusNode);
+        const focused = JSX.childOf(content, this.getSelection().focusNode);
         this.currentHTML = content.innerHTML = this.defaultValue || '';
         this.restoreParagraph(focused);
         this.updateValidation();
@@ -789,7 +802,7 @@ __decorate([
 ], Element.prototype, "unremovableMap", void 0);
 __decorate([
     Class.Private()
-], Element.prototype, "ignoredSet", void 0);
+], Element.prototype, "ignoredMap", void 0);
 __decorate([
     Class.Private()
 ], Element.prototype, "styles", void 0);
@@ -820,6 +833,9 @@ __decorate([
 __decorate([
     Class.Private()
 ], Element.prototype, "unwrapSelectionRange", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "getSelection", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "saveSelectionRange", null);

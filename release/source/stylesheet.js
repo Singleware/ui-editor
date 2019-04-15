@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 const Class = require("@singleware/class");
@@ -71,6 +71,7 @@ let Stylesheet = class Stylesheet extends OSS.Stylesheet {
         this.verticalToolbar.height = 'inherit';
         this.content.width = 'inherit';
         this.content.height = 'inherit';
+        this.content.zoom = '1';
         this.slottedContent.display = 'block';
         this.slottedContent.position = 'relative';
         this.slottedContent.overflow = 'auto';

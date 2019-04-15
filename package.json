@@ -7,7 +7,7 @@
   "name": "@singleware/ui-editor",
   "description": "Singleware UI editor package.",
   "license": "MIT",
-  "version": "1.0.42",
+  "version": "1.0.44",
   "main": "release/source/index.js",
   "types": "release/types/index.d.ts",
   "keywords": [
@@ -25,13 +25,13 @@
   },
   "dependencies": {
     "@singleware/class": "^1.1.19",
-    "@singleware/jsx": "^1.0.23",
-    "@singleware/oss": "^1.0.2",
+    "@singleware/jsx": "^1.0.24",
+    "@singleware/oss": "^1.0.3",
     "@singleware/ui-control": "^1.1.10"
   },
   "devDependencies": {
-    "prettier": "^1.16.4",
-    "typescript": "^2.9.2"
+    "prettier": "^1.17.0",
+    "typescript": "^3.4.3"
   },
   "prettier": {
     "printWidth": 140,

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 import * as Class from '@singleware/class';
@@ -54,10 +54,10 @@ export class Element extends Control.Element {
   private unremovableMap = new WeakMap<Node, any>();
 
   /**
-   * Set of ignored nodes.
+   * Map of ignored nodes.
    */
   @Class.Private()
-  private ignoredSet = new WeakSet<Node>();
+  private ignoredMap = new WeakMap<Node, boolean>();
 
   /**
    * Element styles.
@@ -75,9 +75,7 @@ export class Element extends Control.Element {
    * Content element.
    */
   @Class.Private()
-  private contentSlot = (
-    <slot name="content" class="content" style="zoom:1.0" onSlotChange={this.contentSlotChangeHandler.bind(this)} />
-  ) as HTMLSlotElement;
+  private contentSlot = <slot name="content" class="content" onSlotChange={this.contentSlotChangeHandler.bind(this)} /> as HTMLSlotElement;
 
   /**
    * Editor layout element.
@@ -153,11 +151,25 @@ export class Element extends Control.Element {
   }
 
   /**
+   * Gets the current selection.
+   * @returns Returns the selection object.
+   * @throws Throws an error when the selection object doesn't exists.
+   */
+  @Class.Private()
+  private getSelection(): Selection {
+    const selection = window.getSelection();
+    if (!selection) {
+      throw new Error(`There's no selection.`);
+    }
+    return selection;
+  }
+
+  /**
    * Saves the current selection range.
    */
   @Class.Private()
   private saveSelectionRange(): void {
-    const selection = window.getSelection();
+    const selection = this.getSelection();
     if (selection.rangeCount > 0) {
       this.currentRange = selection.getRangeAt(0);
     }
@@ -169,7 +181,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private restoreSelectionRange(): void {
     if (this.currentRange && this.preserveSelection) {
-      const selection = window.getSelection();
+      const selection = this.getSelection();
       selection.removeAllRanges();
       selection.addRange(this.currentRange);
     }
@@ -181,7 +193,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private removeSelectionRange(): void {
     if (this.currentRange) {
-      window.getSelection().removeRange(this.currentRange);
+      this.getSelection().removeRange(this.currentRange);
       this.currentRange = void 0;
     }
   }
@@ -201,7 +213,7 @@ export class Element extends Control.Element {
    */
   @Class.Private()
   private restoreFocus(element: HTMLElement): Range {
-    const selection = window.getSelection();
+    const selection = this.getSelection();
     const range = document.createRange();
     range.selectNodeContents(element);
     selection.removeAllRanges();
@@ -352,7 +364,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private contentChangeHandler(records: MutationRecord[]): void {
     const content = this.getRequiredChildElement(this.contentSlot);
-    const focused = JSX.childOf(content, window.getSelection().focusNode);
+    const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     let updated = false;
     this.stopContentObserver();
     for (const record of records) {
@@ -375,7 +387,7 @@ export class Element extends Control.Element {
     const content = this.getRequiredChildElement(this.contentSlot);
     content.contentEditable = (!this.readOnly && !this.disabled).toString();
     this.currentHTML = content.innerHTML;
-    this.restoreParagraph(JSX.childOf(content, window.getSelection().focusNode));
+    this.restoreParagraph(JSX.childOf(content, this.getSelection().focusNode as Node));
     this.updateValidation();
     this.clearSelection();
     this.stopContentObserver();
@@ -390,7 +402,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private performSurrounding(tag: string): HTMLElement {
     this.focus();
-    const selection = window.getSelection();
+    const selection = this.getSelection();
     const range = selection.getRangeAt(0);
     let element;
     if (range.startContainer instanceof HTMLElement && range.startContainer.tagName.toLowerCase() === tag) {
@@ -417,10 +429,10 @@ export class Element extends Control.Element {
   @Class.Private()
   private performCommand(name: string, value?: any): HTMLElement {
     this.focus();
-    const selection = window.getSelection();
+    const selection = this.getSelection();
     document.execCommand(name, false, value);
     this.saveChanges();
-    return selection.focusNode.parentElement as HTMLElement;
+    return (selection.focusNode as Node).parentElement as HTMLElement;
   }
 
   /**
@@ -465,7 +477,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public get value(): string {
-    return Helper.buildHTMLNodes(this.getRequiredChildElement(this.contentSlot).childNodes, this.ignoredSet);
+    return Helper.buildHTMLNodes(this.getRequiredChildElement(this.contentSlot).childNodes, this.ignoredMap);
   }
 
   /**
@@ -473,7 +485,7 @@ export class Element extends Control.Element {
    */
   public set value(value: string) {
     const content = this.getRequiredChildElement(this.contentSlot);
-    const focused = JSX.childOf(content, window.getSelection().focusNode);
+    const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     this.currentHTML = content.innerHTML = value || '';
     this.restoreParagraph(focused);
     this.updateValidation();
@@ -626,7 +638,7 @@ export class Element extends Control.Element {
   @Class.Public()
   public get selectedHTML(): string | undefined {
     if (this.currentRange) {
-      return Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredSet);
+      return Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredMap);
     }
     return void 0;
   }
@@ -636,7 +648,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public get selectedStyles(): Styles {
-    const selection = window.getSelection();
+    const selection = window.getSelection() as Selection;
     const styles = { ...Settings.defaultStyles };
     if (selection.focusNode) {
       const content = this.getRequiredChildElement(this.contentSlot);
@@ -677,16 +689,17 @@ export class Element extends Control.Element {
   }
 
   /**
-   * Sets the rendering state of the specified element.
-   * @param element Element instance.
-   * @param state Determines whether the element should be ignored by the renderer or not.
+   * Sets the rendering state of the specified node.
+   * @param node Node instance.
+   * @param state Determines whether the node should be ignored by the renderer or not.
+   * @param children Determines whether the node children should be affected or not.
    */
   @Class.Public()
-  public setRenderingState(element: HTMLElement, state: boolean): void {
+  public setRenderingState(node: Node, state: boolean, children?: boolean): void {
     if (state) {
-      this.ignoredSet.delete(element);
+      this.ignoredMap.delete(node);
     } else {
-      this.ignoredSet.add(element);
+      this.ignoredMap.set(node, children || false);
     }
   }
 
@@ -715,7 +728,7 @@ export class Element extends Control.Element {
   @Class.Public()
   public reset(): void {
     const content = this.getRequiredChildElement(this.contentSlot);
-    const focused = JSX.childOf(content, window.getSelection().focusNode);
+    const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     this.currentHTML = content.innerHTML = this.defaultValue || '';
     this.restoreParagraph(focused);
     this.updateValidation();

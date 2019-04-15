@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Copyright (C) 2018 Silas B. Domingos
+/*
+ * Copyright (C) 2018-2019 Silas B. Domingos
  * This source code is licensed under the MIT License as described in the file LICENSE.
  */
 const Class = require("@singleware/class");
@@ -194,12 +194,13 @@ let Component = class Component extends Control.Component {
         this.skeleton.setRemovalState(element, state, locker);
     }
     /**
-     * Sets the rendering state of the specified element.
-     * @param element Element instance.
-     * @param state Determines whether the element should be ignored by the renderer or not.
+     * Sets the rendering state of the specified node.
+     * @param node Node instance.
+     * @param state Determines whether the node should be ignored by the renderer or not.
+     * @param children Determines whether the node children should be affected or not.
      */
-    setRenderingState(element, state) {
-        this.skeleton.setRenderingState(element, state);
+    setRenderingState(node, state, children) {
+        this.skeleton.setRenderingState(node, state, children);
     }
     /**
      * Clears the current selection.
