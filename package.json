@@ -25,13 +25,22 @@
   },
   "dependencies": {
     "@singleware/class": "^1.1.19",
-    "@singleware/jsx": "^1.0.24",
+    "@singleware/jsx": "^1.0.27",
     "@singleware/oss": "^1.0.3",
     "@singleware/ui-control": "^1.1.10"
   },
   "devDependencies": {
-    "prettier": "^1.17.0",
-    "typescript": "^3.4.3"
+    "@singleware/backend": "^1.2.16",
+    "@singleware/bundler": "^1.0.24",
+    "@singleware/frontend": "^1.2.6",
+    "@singleware/ui-field": "^1.1.20",
+    "@singleware/ui-fieldset": "^1.1.11",
+    "@singleware/ui-form": "^1.1.23",
+    "@singleware/ui-select": "^1.1.28",
+    "@types/node": "^12.0.8",
+    "less": "^3.9.0",
+    "prettier": "^1.18.2",
+    "typescript": "^3.5.2"
   },
   "prettier": {
     "printWidth": 140,
@@ -40,8 +49,15 @@
     "semi": true
   },
   "scripts": {
-    "build": "npm run make && npm run update",
-    "make": "npx tsc -p ./source",
-    "update": "cp -Rf ./source/*.d.ts ./release/types"
+    "start": "node ./release/tests/server/main.js",
+    "build": "npm run clean && npm run make && npm run make-tests",
+    "clean": "rm -rf ./release",
+    "make": "npm run compile-source && npm run update-source",
+    "compile-source": "npx tsc -p ./source",
+    "update-source": "cp -Rf ./source/*.d.ts ./release/types",
+    "make-tests": "npm run compile-source-test && npm run compile-styles-test && npm run link-tests",
+    "compile-source-test": "npx tsc -p ./tests",
+    "compile-styles-test": "npx lessc ./tests/bundler.less > ./tests/public/index.css",
+    "link-tests": "node ./release/tests/bundler.js"
   }
 }

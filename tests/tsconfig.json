@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "jsx": "react",
+    "jsxFactory": "JSX.create",
+    "strict": true,
+    "incremental": true,
+    "experimentalDecorators": true,
+    "outDir": "../release",
+    "baseUrl": ".",
+    "paths": {
+      "@module/*": [
+        "../source/*"
+      ]
+    }
+  },
+  "include": [
+    "./**/*"
+  ],
+}

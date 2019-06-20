@@ -1,0 +1,67 @@
+/**
+ * Copyright (C) 2018-2019 Silas B. Domingos
+ * This source code is licensed under the MIT License as described in the file LICENSE.
+ */
+body {
+  margin: 0;
+  padding: 0;
+
+  .experiment {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+
+    > .content {
+      overflow: auto;
+      padding: 2rem;
+      width: 100%;
+      background-color: hsl(0, 0%, 100%);
+
+      > .editor {
+        top: 50%;
+        left: 50%;
+        width: 50vw;
+        height: 50vh;
+        transform: translate(-50%, -50%);
+
+        > .toolbar {
+          display: flex;
+          flex-direction: row;
+
+          .select {
+            .result {
+              border: 0.0625rem solid hsl(0, 0%, 90%);
+              background: hsl(0, 0%, 100%);
+              min-width: 8rem;
+            }
+          }
+
+          .button {
+            border: 0.0625rem solid hsl(0, 0%, 90%);
+            background: hsl(0, 0%, 98%);
+            min-width: 2rem;
+            padding: 0.25rem 0.5rem;
+
+            &.pushed {
+              background: hsl(0, 0%, 90%);
+            }
+          }
+        }
+
+        > .content {
+          border: 0.0625rem solid hsl(0, 0%, 90%);
+        }
+      }
+    }
+
+    > .control {
+      flex-shrink: 0;
+      flex-grow: 0;
+      padding: 2rem;
+      width: 20rem;
+      background: hsl(0, 0%, 95%);
+      border-left: 0.0625rem solid hsl(0, 0%, 90%);
+    }
+  }
+}
