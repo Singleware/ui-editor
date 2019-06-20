@@ -291,7 +291,7 @@ export class Element extends Control.Element {
   }
 
   /**
-   * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS, it will be removed.
+   * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS itself will be removed.
    * @param list List of nodes or elements.
    * @param tag Expected tag name.
    * @param properties CSS properties to be cleaned.
@@ -648,7 +648,7 @@ export class Element extends Control.Element {
    */
   @Class.Public()
   public get selectedStyles(): Styles {
-    const selection = window.getSelection() as Selection;
+    const selection = globalThis.getSelection() as Selection;
     const styles = { ...Settings.defaultStyles };
     if (selection.focusNode) {
       const content = this.getRequiredChildElement(this.contentSlot);
@@ -657,7 +657,7 @@ export class Element extends Control.Element {
       while (current && current !== content) {
         if (current instanceof HTMLElement) {
           Helper.collectStylesByElement(styles, current);
-          Helper.collectStylesByCSS(styles, window.getComputedStyle(current));
+          Helper.collectStylesByCSS(styles, globalThis.getComputedStyle(current));
         }
         current = current.parentElement as HTMLElement;
       }

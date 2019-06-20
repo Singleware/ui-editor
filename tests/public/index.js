@@ -8521,7 +8521,7 @@ let Element = class Element extends Control.Element {
         return total;
     }
     /**
-     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS, it will be removed.
+     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS itself will be removed.
      * @param list List of nodes or elements.
      * @param tag Expected tag name.
      * @param properties CSS properties to be cleaned.
@@ -8810,7 +8810,7 @@ let Element = class Element extends Control.Element {
      * Gets the selected styles.
      */
     get selectedStyles() {
-        const selection = window.getSelection();
+        const selection = globalThis.getSelection();
         const styles = { ...settings_1.Settings.defaultStyles };
         if (selection.focusNode) {
             const content = this.getRequiredChildElement(this.contentSlot);
@@ -8819,7 +8819,7 @@ let Element = class Element extends Control.Element {
             while (current && current !== content) {
                 if (current instanceof HTMLElement) {
                     helper_1.Helper.collectStylesByElement(styles, current);
-                    helper_1.Helper.collectStylesByCSS(styles, window.getComputedStyle(current));
+                    helper_1.Helper.collectStylesByCSS(styles, globalThis.getComputedStyle(current));
                 }
                 current = current.parentElement;
             }
@@ -9367,17 +9367,22 @@ let Helper = class Helper extends Class.Null {
      * @param declarations CSS declarations.
      */
     static collectStylesByCSS(styles, declarations) {
-        let style, property;
+        let property;
         for (const entry in this.stylesByCSSDeclaration) {
-            if ((style = this.stylesByCSSDeclaration[entry])) {
-                if (style.target) {
-                    if (styles[style.target] === void 0) {
-                        styles[style.target] = declarations[entry];
-                    }
+            const style = this.stylesByCSSDeclaration[entry];
+            const value = declarations[entry] || '';
+            if (style.mapping) {
+                if ((property = style.mapping[value])) {
+                    styles[property] = true;
                 }
-                else if (style.mapping) {
-                    if ((property = style.mapping[declarations[entry]])) {
-                        styles[property] = true;
+            }
+            else if (style.target) {
+                if (styles[style.target] === void 0) {
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        styles[style.target] = value.substr(1, value.length - 2);
+                    }
+                    else {
+                        styles[style.target] = value;
                     }
                 }
             }
@@ -9391,15 +9396,13 @@ let Helper = class Helper extends Class.Null {
     static collectStylesByElement(styles, element) {
         const entries = this.stylesByTagName[element.tagName] || [];
         for (const entry of entries) {
-            if (entry && entry.target) {
-                if (entry.source) {
-                    if (styles[entry.target] === void 0 && element.hasAttribute(entry.source)) {
-                        styles[entry.target] = element.getAttribute(entry.source);
-                    }
+            if (entry.source) {
+                if (styles[entry.target] === void 0 && element.hasAttribute(entry.source)) {
+                    styles[entry.target] = element.getAttribute(entry.source);
                 }
-                else {
-                    styles[entry.target] = true;
-                }
+            }
+            else {
+                styles[entry.target] = true;
             }
         }
     }
@@ -9844,7 +9847,7 @@ let View = class View extends Control.Component {
         /**
          * Font select.
          */
-        this.fontSelect = (JSX.create(Select.Component, { class: "select", options: ['Arial', 'Courier New', 'Time New Roman'], onChange: () => this.content.fontNameAction(this.fontSelect.value) },
+        this.fontSelect = (JSX.create(Select.Component, { class: "select", options: ['Arial', 'Courier New', 'Times New Roman'], onChange: () => this.content.fontNameAction(this.fontSelect.value) },
             JSX.create("button", { slot: "input", class: "button" }, "Default font"),
             JSX.create("div", { slot: "result", class: "result" })));
         /**

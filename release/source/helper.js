@@ -73,17 +73,22 @@ let Helper = class Helper extends Class.Null {
      * @param declarations CSS declarations.
      */
     static collectStylesByCSS(styles, declarations) {
-        let style, property;
+        let property;
         for (const entry in this.stylesByCSSDeclaration) {
-            if ((style = this.stylesByCSSDeclaration[entry])) {
-                if (style.target) {
-                    if (styles[style.target] === void 0) {
-                        styles[style.target] = declarations[entry];
-                    }
+            const style = this.stylesByCSSDeclaration[entry];
+            const value = declarations[entry] || '';
+            if (style.mapping) {
+                if ((property = style.mapping[value])) {
+                    styles[property] = true;
                 }
-                else if (style.mapping) {
-                    if ((property = style.mapping[declarations[entry]])) {
-                        styles[property] = true;
+            }
+            else if (style.target) {
+                if (styles[style.target] === void 0) {
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        styles[style.target] = value.substr(1, value.length - 2);
+                    }
+                    else {
+                        styles[style.target] = value;
                     }
                 }
             }
@@ -97,15 +102,13 @@ let Helper = class Helper extends Class.Null {
     static collectStylesByElement(styles, element) {
         const entries = this.stylesByTagName[element.tagName] || [];
         for (const entry of entries) {
-            if (entry && entry.target) {
-                if (entry.source) {
-                    if (styles[entry.target] === void 0 && element.hasAttribute(entry.source)) {
-                        styles[entry.target] = element.getAttribute(entry.source);
-                    }
+            if (entry.source) {
+                if (styles[entry.target] === void 0 && element.hasAttribute(entry.source)) {
+                    styles[entry.target] = element.getAttribute(entry.source);
                 }
-                else {
-                    styles[entry.target] = true;
-                }
+            }
+            else {
+                styles[entry.target] = true;
             }
         }
     }

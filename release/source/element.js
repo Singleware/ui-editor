@@ -250,7 +250,7 @@ let Element = class Element extends Control.Element {
         return total;
     }
     /**
-     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS, it will be removed.
+     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS itself will be removed.
      * @param list List of nodes or elements.
      * @param tag Expected tag name.
      * @param properties CSS properties to be cleaned.
@@ -539,7 +539,7 @@ let Element = class Element extends Control.Element {
      * Gets the selected styles.
      */
     get selectedStyles() {
-        const selection = window.getSelection();
+        const selection = globalThis.getSelection();
         const styles = { ...settings_1.Settings.defaultStyles };
         if (selection.focusNode) {
             const content = this.getRequiredChildElement(this.contentSlot);
@@ -548,7 +548,7 @@ let Element = class Element extends Control.Element {
             while (current && current !== content) {
                 if (current instanceof HTMLElement) {
                     helper_1.Helper.collectStylesByElement(styles, current);
-                    helper_1.Helper.collectStylesByCSS(styles, window.getComputedStyle(current));
+                    helper_1.Helper.collectStylesByCSS(styles, globalThis.getComputedStyle(current));
                 }
                 current = current.parentElement;
             }

@@ -120,7 +120,7 @@ export declare class Element extends Control.Element {
      */
     private removeDeniedNodes;
     /**
-     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS, it will be removed.
+     * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS itself will be removed.
      * @param list List of nodes or elements.
      * @param tag Expected tag name.
      * @param properties CSS properties to be cleaned.

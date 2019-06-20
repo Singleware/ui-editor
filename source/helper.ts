@@ -136,16 +136,20 @@ export class Helper extends Class.Null {
    */
   @Class.Public()
   public static collectStylesByCSS(styles: Styles, declarations: CSSStyleDeclaration): void {
-    let style, property;
+    let property;
     for (const entry in this.stylesByCSSDeclaration) {
-      if ((style = (<any>this.stylesByCSSDeclaration)[entry])) {
-        if (style.target) {
-          if ((<any>styles)[style.target] === void 0) {
-            (<any>styles)[style.target] = (<any>declarations)[entry];
-          }
-        } else if (style.mapping) {
-          if ((property = style.mapping[(<any>declarations)[entry]])) {
-            (<any>styles)[property] = true;
+      const style = (<any>this.stylesByCSSDeclaration)[entry];
+      const value = <string>(<any>declarations)[entry] || '';
+      if (style.mapping) {
+        if ((property = style.mapping[value])) {
+          (<any>styles)[property] = true;
+        }
+      } else if (style.target) {
+        if ((<any>styles)[style.target] === void 0) {
+          if (value.startsWith('"') && value.endsWith('"')) {
+            (<any>styles)[style.target] = value.substr(1, value.length - 2);
+          } else {
+            (<any>styles)[style.target] = value;
           }
         }
       }
@@ -161,14 +165,12 @@ export class Helper extends Class.Null {
   public static collectStylesByElement(styles: Styles, element: HTMLElement): void {
     const entries = (<any>this.stylesByTagName)[element.tagName] || [];
     for (const entry of entries) {
-      if (entry && entry.target) {
-        if (entry.source) {
-          if ((<any>styles)[entry.target] === void 0 && element.hasAttribute(entry.source)) {
-            (<any>styles)[entry.target] = element.getAttribute(entry.source);
-          }
-        } else {
-          (<any>styles)[entry.target] = true;
+      if (entry.source) {
+        if ((<any>styles)[entry.target] === void 0 && element.hasAttribute(entry.source)) {
+          (<any>styles)[entry.target] = element.getAttribute(entry.source);
         }
+      } else {
+        (<any>styles)[entry.target] = true;
       }
     }
   }

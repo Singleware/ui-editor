@@ -24,7 +24,7 @@ export class View extends Control.Component<Control.Properties> {
   private fontSelect = (
     <Select.Component
       class="select"
-      options={['Arial', 'Courier New', 'Time New Roman']}
+      options={['Arial', 'Courier New', 'Times New Roman']}
       onChange={() => this.content.fontNameAction(this.fontSelect.value as string)}
     >
       <button slot="input" class="button">

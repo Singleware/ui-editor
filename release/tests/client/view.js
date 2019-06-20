@@ -30,7 +30,7 @@ let View = class View extends Control.Component {
         /**
          * Font select.
          */
-        this.fontSelect = (JSX.create(Select.Component, { class: "select", options: ['Arial', 'Courier New', 'Time New Roman'], onChange: () => this.content.fontNameAction(this.fontSelect.value) },
+        this.fontSelect = (JSX.create(Select.Component, { class: "select", options: ['Arial', 'Courier New', 'Times New Roman'], onChange: () => this.content.fontNameAction(this.fontSelect.value) },
             JSX.create("button", { slot: "input", class: "button" }, "Default font"),
             JSX.create("div", { slot: "result", class: "result" })));
         /**
