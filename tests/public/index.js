@@ -8262,8 +8262,7 @@ let Element = class Element extends Control.Element {
      */
     restoreLockedNodes(parent, next, list) {
         let total = 0;
-        for (let i = list.length - 1; i > -1; --i) {
-            const node = list.item(i);
+        for (const node of list) {
             if (node instanceof HTMLElement) {
                 if (this.unremovableMap.has(node)) {
                     parent.insertBefore(node, next && next.isConnected ? next : parent.lastChild);
@@ -8277,14 +8276,13 @@ let Element = class Element extends Control.Element {
         return total;
     }
     /**
-     * Remove any denied node for the specified node list.
+     * Remove any denied node from the specified node list.
      * @param list List of added nodes or elements.
      * @returns Returns the number of removed nodes.
      */
     removeDeniedNodes(list) {
         let total = 0;
-        for (let i = list.length - 1; i > -1; --i) {
-            const node = list.item(i);
+        for (const node of list) {
             if (node instanceof HTMLElement) {
                 if (this.deniedTags.includes(node.tagName)) {
                     node.remove();
@@ -8292,6 +8290,26 @@ let Element = class Element extends Control.Element {
                 }
                 else {
                     total += this.removeDeniedNodes(node.children);
+                }
+            }
+        }
+        return total;
+    }
+    /**
+     * Unwrap any dead selection from the specified node list.
+     * @param list List of added nodes or elements.
+     * @returns Returns the number of removed nodes.
+     */
+    unwrapDeadSelections(list) {
+        let total = 0;
+        for (const node of list) {
+            if (node instanceof HTMLElement && this.currentMark !== node) {
+                if (node.dataset.sweEditorSelection) {
+                    JSX.unwrap(node);
+                    total++;
+                }
+                else {
+                    total += this.unwrapDeadSelections(node.children);
                 }
             }
         }
@@ -8372,6 +8390,7 @@ let Element = class Element extends Control.Element {
             const parent = this.getConnectedParent(record.target) || content;
             updated = this.restoreLockedNodes(parent, record.nextSibling, record.removedNodes) > 0 || updated;
             updated = this.removeDeniedNodes(record.addedNodes) > 0 || updated;
+            updated = this.unwrapDeadSelections(record.addedNodes) > 0 || updated;
         }
         if (this.restoreParagraph(focused) || updated) {
             this.currentHTML = content.innerHTML;
@@ -8384,12 +8403,15 @@ let Element = class Element extends Control.Element {
      */
     contentSlotChangeHandler() {
         const content = this.getRequiredChildElement(this.contentSlot);
+        const focused = JSX.childOf(content, this.getSelection().focusNode);
         content.contentEditable = (!this.readOnly && !this.disabled).toString();
         this.currentHTML = content.innerHTML;
-        this.restoreParagraph(JSX.childOf(content, this.getSelection().focusNode));
-        this.updateValidation();
         this.clearSelection();
         this.stopContentObserver();
+        this.removeDeniedNodes(content.children);
+        this.unwrapDeadSelections(content.children);
+        this.restoreParagraph(focused);
+        this.updateValidation();
         this.startContentObserver();
     }
     /**
@@ -8461,9 +8483,10 @@ let Element = class Element extends Control.Element {
         const content = this.getRequiredChildElement(this.contentSlot);
         const focused = JSX.childOf(content, this.getSelection().focusNode);
         this.currentHTML = content.innerHTML = value || '';
+        this.clearSelection();
+        this.unwrapDeadSelections(content.children);
         this.restoreParagraph(focused);
         this.updateValidation();
-        this.clearSelection();
     }
     /**
      * Gets the required state of the element.
@@ -8579,7 +8602,9 @@ let Element = class Element extends Control.Element {
      */
     get selectedHTML() {
         if (this.currentRange) {
-            return helper_1.Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredMap);
+            const nodes = this.currentRange.cloneContents().childNodes;
+            this.unwrapDeadSelections(nodes);
+            return helper_1.Helper.buildHTMLNodes(nodes, this.ignoredMap);
         }
         return void 0;
     }
@@ -8661,9 +8686,9 @@ let Element = class Element extends Control.Element {
         const content = this.getRequiredChildElement(this.contentSlot);
         const focused = JSX.childOf(content, this.getSelection().focusNode);
         this.currentHTML = content.innerHTML = this.defaultValue || '';
+        this.clearSelection();
         this.restoreParagraph(focused);
         this.updateValidation();
-        this.clearSelection();
     }
     /**
      * Checks the element validity.
@@ -8908,6 +8933,9 @@ __decorate([
 __decorate([
     Class.Private()
 ], Element.prototype, "removeDeniedNodes", null);
+__decorate([
+    Class.Private()
+], Element.prototype, "unwrapDeadSelections", null);
 __decorate([
     Class.Private()
 ], Element.prototype, "clearNodes", null);

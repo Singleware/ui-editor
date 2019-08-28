@@ -254,8 +254,7 @@ export class Element extends Control.Element {
   @Class.Private()
   private restoreLockedNodes(parent: Node, next: Node | null, list: NodeList | HTMLCollection): number {
     let total = 0;
-    for (let i = list.length - 1; i > -1; --i) {
-      const node = list.item(i);
+    for (const node of list) {
       if (node instanceof HTMLElement) {
         if (this.unremovableMap.has(node)) {
           parent.insertBefore(node, next && next.isConnected ? next : parent.lastChild);
@@ -269,21 +268,41 @@ export class Element extends Control.Element {
   }
 
   /**
-   * Remove any denied node for the specified node list.
+   * Remove any denied node from the specified node list.
    * @param list List of added nodes or elements.
    * @returns Returns the number of removed nodes.
    */
   @Class.Private()
   private removeDeniedNodes(list: NodeList | HTMLCollection): number {
     let total = 0;
-    for (let i = list.length - 1; i > -1; --i) {
-      const node = list.item(i);
+    for (const node of list) {
       if (node instanceof HTMLElement) {
         if (this.deniedTags.includes(node.tagName)) {
           node.remove();
           total++;
         } else {
           total += this.removeDeniedNodes(node.children);
+        }
+      }
+    }
+    return total;
+  }
+
+  /**
+   * Unwrap any dead selection from the specified node list.
+   * @param list List of added nodes or elements.
+   * @returns Returns the number of removed nodes.
+   */
+  @Class.Private()
+  private unwrapDeadSelections(list: NodeList | HTMLCollection): number {
+    let total = 0;
+    for (const node of list) {
+      if (node instanceof HTMLElement && this.currentMark !== node) {
+        if (node.dataset.sweEditorSelection) {
+          JSX.unwrap(node);
+          total++;
+        } else {
+          total += this.unwrapDeadSelections(node.children);
         }
       }
     }
@@ -371,6 +390,7 @@ export class Element extends Control.Element {
       const parent = this.getConnectedParent(record.target as HTMLElement) || content;
       updated = this.restoreLockedNodes(parent, record.nextSibling, record.removedNodes) > 0 || updated;
       updated = this.removeDeniedNodes(record.addedNodes) > 0 || updated;
+      updated = this.unwrapDeadSelections(record.addedNodes) > 0 || updated;
     }
     if (this.restoreParagraph(focused) || updated) {
       this.currentHTML = content.innerHTML;
@@ -385,12 +405,15 @@ export class Element extends Control.Element {
   @Class.Private()
   private contentSlotChangeHandler(): void {
     const content = this.getRequiredChildElement(this.contentSlot);
+    const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     content.contentEditable = (!this.readOnly && !this.disabled).toString();
     this.currentHTML = content.innerHTML;
-    this.restoreParagraph(JSX.childOf(content, this.getSelection().focusNode as Node));
-    this.updateValidation();
     this.clearSelection();
     this.stopContentObserver();
+    this.removeDeniedNodes(content.children);
+    this.unwrapDeadSelections(content.children);
+    this.restoreParagraph(focused);
+    this.updateValidation();
     this.startContentObserver();
   }
 
@@ -487,9 +510,10 @@ export class Element extends Control.Element {
     const content = this.getRequiredChildElement(this.contentSlot);
     const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     this.currentHTML = content.innerHTML = value || '';
+    this.clearSelection();
+    this.unwrapDeadSelections(content.children);
     this.restoreParagraph(focused);
     this.updateValidation();
-    this.clearSelection();
   }
 
   /**
@@ -638,7 +662,9 @@ export class Element extends Control.Element {
   @Class.Public()
   public get selectedHTML(): string | undefined {
     if (this.currentRange) {
-      return Helper.buildHTMLNodes(this.currentRange.cloneContents().childNodes, this.ignoredMap);
+      const nodes = this.currentRange.cloneContents().childNodes;
+      this.unwrapDeadSelections(nodes);
+      return Helper.buildHTMLNodes(nodes, this.ignoredMap);
     }
     return void 0;
   }
@@ -730,9 +756,9 @@ export class Element extends Control.Element {
     const content = this.getRequiredChildElement(this.contentSlot);
     const focused = JSX.childOf(content, this.getSelection().focusNode as Node);
     this.currentHTML = content.innerHTML = this.defaultValue || '';
+    this.clearSelection();
     this.restoreParagraph(focused);
     this.updateValidation();
-    this.clearSelection();
   }
 
   /**

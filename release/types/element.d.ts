@@ -114,11 +114,17 @@ export declare class Element extends Control.Element {
      */
     private restoreLockedNodes;
     /**
-     * Remove any denied node for the specified node list.
+     * Remove any denied node from the specified node list.
      * @param list List of added nodes or elements.
      * @returns Returns the number of removed nodes.
      */
     private removeDeniedNodes;
+    /**
+     * Unwrap any dead selection from the specified node list.
+     * @param list List of added nodes or elements.
+     * @returns Returns the number of removed nodes.
+     */
+    private unwrapDeadSelections;
     /**
      * Remove all given CSS properties from the specified list of nodes, when the node becomes without CSS itself will be removed.
      * @param list List of nodes or elements.
