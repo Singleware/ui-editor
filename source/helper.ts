@@ -70,6 +70,7 @@ export class Helper extends Class.Null {
     'hr',
     'img',
     'input',
+    'keygen',
     'link',
     'meta',
     'param',
@@ -108,18 +109,21 @@ export class Helper extends Class.Null {
     const list = [];
     for (const node of nodes) {
       if (node instanceof HTMLElement) {
-        const children = this.buildHTMLNodes(node.childNodes, ignore);
         if (ignore.has(node)) {
-          if (ignore.get(node) !== true && children.length > 0) {
-            list.push(children);
+          if (ignore.get(node) !== true) {
+            const children = this.buildHTMLNodes(node.childNodes, ignore);
+            if (children.length > 0) {
+              list.push(children);
+            }
           }
         } else {
           const tagName = node.tagName.toLowerCase();
           const attributes = this.buildHTMLAttributes(node.attributes);
-          if (children.length > 0) {
-            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
+          if (this.emptyElements.has(tagName)) {
+            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>`);
           } else {
-            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}${this.emptyElements.has(tagName) ? '' : '/'}>`);
+            const children = this.buildHTMLNodes(node.childNodes, ignore);
+            list.push(`<${tagName}${attributes.length ? ` ${attributes}` : ''}>${children}</${tagName}>`);
           }
         }
       } else {
